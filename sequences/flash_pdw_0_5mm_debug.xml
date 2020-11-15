@@ -1,0 +1,83 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Parameters FOVx="2" FOVy="176" FOVz="248" GradMaxAmpl="70" GradSlewRate="100" Name="P"
+            Nx="1"
+            Ny="88"
+            Nz="124"
+            TE="3.22"
+            TR="28.4">
+   <ConcatSequence Name="O">
+      <CONCATSEQUENCE Name="DU" Repetitions="576">
+         <DELAYATOMICSEQUENCE Delay="1400e-3" Name="D0"/>
+         <ATOMICSEQUENCE Name="RFD">
+            <SINCRFPULSE Axis="RF" Duration="0.14" FlipAngle="8"
+                         InitialPhase="mod(20961+C*(C+18*2-1)*137,360000)"
+                         Name="RFDummyPulse"
+                         Observe="C=DU.Counter"/>
+         </ATOMICSEQUENCE>
+         <DELAYATOMICSEQUENCE Delay="TR-D-D0" Name="D1" Observe="TR=P.TR, D=RFD.Duration, D0=D0.Duration"/>
+      </CONCATSEQUENCE>
+      <CONCATSEQUENCE Name="PE" Observe="NX=P.Nx" Repetitions="NX">
+         <ConcatSequence Name="SS" Observe="NY=P.Ny" Repetitions="NY">
+            <CONCATSEQUENCE Name="C8" Repetitions="1">
+               <ATOMICSEQUENCE Name="MT">
+                  <TRAPGRADPULSE Area="26*1200e-3/6.28" Axis="GX" Duration="1400e-3" Name="MTs"
+                                 SlewRate="0.13e3/6.28"/>
+               </ATOMICSEQUENCE>
+            </CONCATSEQUENCE>
+            <DELAYATOMICSEQUENCE Delay="1410e-3" DelayType="B2C" Name="D8" StartSeq="C8" StopSeq="RFpulse"/>
+            <ATOMICSEQUENCE Name="RF">
+               <SINCRFPULSE Axis="RF" Duration="140e-3" FlipAngle="8"
+                            InitialPhase="mod(491+(PE*SSmax+SS)*((PE*SSmax+SS)+218*2-1)*137, 360000)"
+                            Name="RFpulse"
+                            Observe="PE=PE.Counter, SSmax=SS.Repetitions, SS=SS.Counter"/>
+            </ATOMICSEQUENCE>
+            <ATOMICSEQUENCE Name="Encode">
+               <TRAPGRADPULSE Area="-KMX+(PE)*DKX" Axis="GX" Duration="1080e-3" Name="PEen"
+                              Observe="KMX=P.KMAXx, PE=PE.Counter, DKX=P.DKx, NX=P.Nx"/>
+               <TRAPGRADPULSE Area="-KMY+(SL)*DKY" Axis="GY" Duration="1080e-3" Name="SSen"
+                              Observe="KMY=P.KMAXy, SL=SS.Counter, DKY=P.DKy"/>
+               <TRAPGRADPULSE Area="-1/2*A" Axis="GZ" Duration="1080e-3" Name="PPen"
+                              Observe="KMZ=P.KMAXz, A=GEP.Area"/>
+            </ATOMICSEQUENCE>
+            <DELAYATOMICSEQUENCE Delay="TE" DelayType="C2C" Name="D2" Observe="TE=P.TE, RF=RF.Duration"
+                                 StartSeq="RF"
+                                 StopSeq="GE"/>
+            <ATOMICSEQUENCE Name="GE">
+               <TRAPGRADPULSE ADCs="NZ" Axis="GZ" FlatTopArea="(2*KMZ)" FlatTopTime="2280e-3" Name="GEP"
+                              Observe="NZ=P.Nz, A=PPen.FlatTopArea, KMZ=P.KMAXz"
+                              PhaseLock="1"
+                              SlewRate="0.18e3/6.28"/>
+            </ATOMICSEQUENCE>
+            <CONCATSEQUENCE Name="PT" Repetitions="5">
+               <ATOMICSEQUENCE Name="PTrain">
+                  <TRAPGRADPULSE ADCs="NZ" Axis="GZ" FlatTopArea="(-1)^(C+1)*(2*KMZ)" FlatTopTime="2280e-3"
+                                 Name="PTT"
+                                 Observe="C=PT.Counter, NZ=P.Nz, A=PPen.FlatTopArea, KMZ=P.KMAXz, SR=GEP.SlewRate"
+                                 PhaseLock="1"
+                                 SlewRate="SR"/>
+               </ATOMICSEQUENCE>
+            </CONCATSEQUENCE>
+            <CONCATSEQUENCE Name="DT5" Observe="PTs=PT.Repetitions" Repetitions="5-PTs">
+               <DELAYATOMICSEQUENCE Delay="2400e-3" Name="D5"/>
+            </CONCATSEQUENCE>
+            <ATOMICSEQUENCE Name="Rephase">
+               <TRAPGRADPULSE Area="-A" Axis="GX" Duration="T" Name="PEr"
+                              Observe="T=PEen.Duration, A=PEen.Area"/>
+               <TRAPGRADPULSE Area="-A" Axis="GY" Duration="T" Name="SSr"
+                              Observe="T=SSen.Duration, A=SSen.Area"/>
+               <TRAPGRADPULSE Area="(-1)^(Es)*A" Axis="GZ" Duration="T" Name="PPr"
+                              Observe="T=PPen.Duration, A=PPen.Area, Es=PT.Repetitions"/>
+            </ATOMICSEQUENCE>
+            <DELAYATOMICSEQUENCE Delay="820e-3" Name="D6"/>
+            <CONCATSEQUENCE Name="C1" Repetitions="1">
+               <ATOMICSEQUENCE Name="GSpoil">
+                  <TRAPGRADPULSE Area="6*6.28" Axis="GZ" Duration="6790e-3" Name="GS"
+                                 Observe="KMX=P.KMAXz, A=GEP.Area"
+                                 SlewRate="0.13e3"/>
+               </ATOMICSEQUENCE>
+            </CONCATSEQUENCE>
+            <DELAYATOMICSEQUENCE Delay="1200e-3" Name="D7"/>
+         </ConcatSequence>
+      </CONCATSEQUENCE>
+   </ConcatSequence>
+</Parameters>

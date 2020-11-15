@@ -35,7 +35,7 @@ class TestSampleUtils(unittest.TestCase):
         plot_matrix(mpm_data[:, :, Helper.test_slice, 0], 'MPM')
         print("Test Segmentation Lookup")
         print("Shape: ", mpm_data.shape, "; Size: ", mpm_data.size)
-        self.assertEquals(mpm_data.shape, (x, y, z, 5), "Unexpected array shape.")
+        self.assertEqual(mpm_data.shape, (x, y, z, 5), "Unexpected array shape.")
 
     def test_h5_sample(self, h5_filename='sample.h5'):
         if os.path.exists(h5_filename):

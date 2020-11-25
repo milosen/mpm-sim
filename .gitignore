@@ -129,5 +129,4 @@ dmypy.json
 .pyre/
 
 # Project specific
-test/sample.h5
-test/signals.h5
+runs/

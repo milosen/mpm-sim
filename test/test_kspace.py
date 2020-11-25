@@ -1,9 +1,9 @@
 import unittest
 
-from mpm_utils.kspace import flash_order_kspace, load_h5_signal
+from mpm_sim.kspace import flash_order_kspace, load_h5_signal
 from numpy import absolute, fft
 
-from test.helper import plot_matrix
+from mpm_sim.utils import plot_matrix
 from test.helper import TestHelper as Helper
 
 

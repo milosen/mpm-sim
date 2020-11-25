@@ -1,11 +1,11 @@
 <?xml version="1.0" encoding="utf-8"?>
 <simulate name="JEMRIS">
-   <sample name="Peter McColgan's Segmentation"
-	   uri="/data/hu_nmilosevic/workspace/jemris/jemris/mpm_utils/test/sample.h5"/>
-   <RXcoilarray uri="/data/hu_nmilosevic/workspace/jemris/jemris/mpm_utils/coils/uniform.xml"/>
-   <TXcoilarray uri="/data/hu_nmilosevic/workspace/jemris/jemris/mpm_utils/coils/uniform.xml"/>
+   <sample name="Simulate FLASH with Peter McColgan's Segmentation"
+	   uri="sample.h5"/>
+   <RXcoilarray uri="../coils/uniform.xml"/>
+   <TXcoilarray uri="../coils/uniform.xml"/>
    <parameter ConcomitantFields="0" EvolutionPrefix="evol" EvolutionSteps="0" RandomNoise="0"/>
    <sequence name="Flash PDw 0.5mm"
-	   uri="/data/hu_nmilosevic/workspace/jemris/jemris/mpm_utils/sequences/flash_pdw_0_5mm.xml"/>
+	   uri="../sequences/flash_pdw_0_5mm.xml"/>
    <model name="Bloch" type="CVODE"/>
 </simulate>

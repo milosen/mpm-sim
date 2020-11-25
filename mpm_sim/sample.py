@@ -3,8 +3,9 @@ from typing import Union
 
 import numpy as np
 import h5py
-import nibabel as nib
-from scipy import ndimage
+
+
+from mpm_sim.utils import load_nifty, preprocess_array
 
 
 class BrainModel:
@@ -26,16 +27,6 @@ class BrainModel:
     classes = 9
 
 
-def load_nifty(path) -> tuple:
-    """Prepare content of nifti file for further processing
-
-    :param path: path to nifti file
-    :return: tuple of (imaging data, data header)
-    """
-    img = nib.load(path)
-    return img.get_fdata(), img.header
-
-
 def lookup_mpm(data: np.ndarray) -> np.ndarray:
     """Turn segmentations into multi-parametric maps by using a lookup for
     parameters of tissue classes.
@@ -54,17 +45,7 @@ def lookup_mpm(data: np.ndarray) -> np.ndarray:
     return BrainModel.tissue[data].astype(float)
 
 
-def interpolate(data: np.ndarray, factor: float) -> np.ndarray:
-    """Interpolate 'data' by 'factor' in each dimension using nearest neighbor interpolation.
-
-    :param data: data array
-    :param factor: interpolation factor
-    :return: interpolated ndarray
-    """
-    return ndimage.zoom(data, factor, order=0, mode='nearest')
-
-
-def mk_h5_sample(data: np.ndarray, h5_filename: str = 'sample.h5', db: Union[np.ndarray, None] = None,
+def mk_h5_sample(data: np.ndarray, h5_filename: str, db: Union[np.ndarray, None] = None,
                  resolution_mm: Union[tuple, list] = (1, 1, 1),
                  offset: Union[tuple, int, float] = (0, 0, 0)) -> np.ndarray:
     """Convert data to JEMRIS readable format.
@@ -111,11 +92,11 @@ def mk_h5_sample(data: np.ndarray, h5_filename: str = 'sample.h5', db: Union[np.
     return sample
 
 
-def jemris_sample_from_nifti(nifti_path, h5_filename='sample.h5',
-                             slicing=(slice(None, None), slice(None, None), slice(None, None)),
-                             transpose_array=(0, 1, 2),
-                             interpolation_factor=1,
-                             resolution_mm=None):
+def write_nifti_sample(nifti_path: str, h5_filename: str = 'sample.h5',
+                       slicing=(slice(None, None), slice(None, None), slice(None, None)),
+                       transpose_array=(0, 1, 2),
+                       interpolation_factor=1,
+                       resolution_mm=None):
     """Use a brain segmentation in nifti format as a template for a JEMRIS
     sample and write the sample to disk.
 
@@ -137,8 +118,8 @@ def jemris_sample_from_nifti(nifti_path, h5_filename='sample.h5',
     if resolution_mm is None:
         resolution_mm = tuple(header['pixdim'][1:4] / interpolation_factor)
     # apply transformations
-    transformed_data = interpolate(data[slicing].transpose(transpose_array), interpolation_factor)
+    transformed_data = preprocess_array(data, slicing, transpose_array, interpolation_factor)
     # look up sample parameters
     mpm_data = lookup_mpm(transformed_data)
     # translate to jemris readable format and write it to disk
-    return mk_h5_sample(mpm_data, h5_filename=h5_filename, resolution_mm=resolution_mm)
+    return mk_h5_sample(mpm_data, h5_filename, resolution_mm=resolution_mm)

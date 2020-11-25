@@ -1,12 +1,13 @@
 import unittest
 import os
 
-from mpm_utils.sample import load_nifty, interpolate, lookup_mpm, \
-    jemris_sample_from_nifti
 from numpy import ndarray
 
 from test.helper import TestHelper as Helper
-from test.helper import plot_matrix
+from mpm_sim.utils import plot_matrix
+from mpm_sim.sample import interpolate, lookup_mpm, \
+    write_nifti_sample
+from mpm_sim.utils import load_nifty
 
 
 class TestSampleUtils(unittest.TestCase):
@@ -41,11 +42,12 @@ class TestSampleUtils(unittest.TestCase):
         if os.path.exists(h5_filename):
             os.remove(h5_filename)
 
-        data = jemris_sample_from_nifti(Helper.data['nifti_file'], h5_filename=h5_filename,
-                                        slicing=(slice(200, 201), slice(200, 324), slice(200, 288)),
-                                        transpose_array=(0, 2, 1), interpolation_factor=4)
+        data = write_nifti_sample(Helper.data['nifti_file'], h5_filename=h5_filename,
+                                  slicing=(slice(200, 201), slice(200, 324), slice(200, 288)),
+                                  transpose_array=(0, 2, 1), interpolation_factor=6)
 
         self.assertTrue(os.path.exists(h5_filename))
+        os.remove(h5_filename)
         self.assertIsInstance(data, ndarray)
 
         print("HDF5 sample shape (Params, X, Y, Z):", data.shape)

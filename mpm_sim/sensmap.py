@@ -8,7 +8,9 @@ from mpm_sim.utils import load_nifty, preprocess_array
 
 
 def dims_slicing(slicing: Tuple[slice, slice, slice]) -> int:
-    if 1 in [slice_dim.stop - slice_dim.start for slice_dim in slicing]:
+    if 1 in [slice_dim.stop - slice_dim.start
+             if slice_dim.stop is not None and slice_dim.start is not None else 0
+             for slice_dim in slicing]:
         return 2
     else:
         return 3

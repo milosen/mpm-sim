@@ -9,7 +9,7 @@
 #
 # Number of nodes and MPI tasks per node:
 #SBATCH --nodes=10
-#SBATCH --ntasks-per-node=40
+#SBATCH --ntasks-per-node=20
 #
 #SBATCH --mail-type=all
 #SBATCH --mail-user=%u@cbs.mpg.de
@@ -18,4 +18,4 @@
 #SBATCH --time=24:00:00
 
 # Run the program:
-srun ../../../build/src/pjemris simu.xml &> pjemris.out
+srun ../../jemris/bin/pjemris simu.xml &> pjemris.out

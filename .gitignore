@@ -131,3 +131,5 @@ dmypy.json
 # Project specific
 runs/
 data/
+jemris/
+

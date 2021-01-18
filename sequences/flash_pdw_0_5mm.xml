@@ -1,8 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
-<Parameters FOVx="0.5" FOVy="44" FOVz="62" GradMaxAmpl="70" GradSlewRate="100" Name="P"
+<Parameters FOVx="0.5" FOVy="176" FOVz="248" GradMaxAmpl="70" GradSlewRate="100" Name="P"
             Nx="1"
-            Ny="88"
-            Nz="124"
+            Ny="352"
+            Nz="496"
             TE="3.22"
             TR="28.4">
    <ConcatSequence Name="O">

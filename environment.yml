@@ -3,6 +3,7 @@ channels:
   - conda-forge
   - defaults
 dependencies:
+  - python>=3.7
   - h5py=3.1.0
   - nibabel=3.2.0
   - numpy=1.19.4
@@ -10,3 +11,4 @@ dependencies:
   - scipy=1.5.2
   - setuptools=50.3.1
   - click=7.1.2
+  - conda-build

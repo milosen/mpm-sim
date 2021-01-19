@@ -1,7 +1,7 @@
 import matplotlib.pyplot as plt
 from numpy import ndarray
 import nibabel as nib
-from typing import Tuple
+from typing import Tuple, List
 
 from scipy import ndimage
 
@@ -51,3 +51,13 @@ def preprocess_array(data: ndarray, slicing: Tuple[slice, slice, slice] = (
                      interpolation_factor=1) -> ndarray:
     """Interpolate, slice and transpose a 3d array"""
     return interpolate(data[slicing].transpose(transpose_array), interpolation_factor)
+
+
+def plot_echos(arr: List[ndarray], title: str = '') -> None:
+    """Plot a 2D numpy array like an image."""
+    f, axarr = plt.subplots(2, 3)
+    for i, mat in enumerate(arr):
+        axarr[i//3, i%3].imshow(mat, cmap='gray')
+    plt.title(title)
+    plt.show()
+

@@ -63,8 +63,9 @@ def flash_order_kspace(signals: np.ndarray, dimensions: Tuple[int, int, int],
     return mxy
 
 
-def basic_recon(signals_h5: str, dims: Tuple[int, int, int] = (434, 496, 352),
-                echos: int = 6) -> np.ndarray:
+def basic_2d_recon(signals_h5: str, dims: Tuple[int, int, int] = (434, 496, 352),
+                echos: int = 6, x_slice=0, channel=0) -> np.ndarray:
     _, m = load_h5_signal(signals_h5)
-    kspace = flash_order_kspace(m, dimensions=dims, echos=echos)[:, 0, :, 0, 0]
-    return np.absolute(np.fft.ifftshift(np.fft.ifft2(kspace)))
+    kspaces = [flash_order_kspace(m, dimensions=dims, echos=echos)[:, echo, :, x_slice, channel] for echo in range(6)]
+    kspaces = [np.flip(kspace, axis=0) if i%2==1 else kspace for i, kspace in enumerate(kspaces)]
+    return [np.absolute(np.fft.ifftshift(np.fft.ifft2(kspace))) for kspace in kspaces]

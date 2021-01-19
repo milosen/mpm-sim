@@ -7,9 +7,9 @@ from typing import Tuple
 import click
 
 from mpm_sim.sample import write_nifti_sample
-from mpm_sim.utils import plot_matrix
+from mpm_sim.utils import plot_matrix, plot_echos
 from mpm_sim.sensmap import write_nifti_sensmap
-from mpm_sim.kspace import basic_recon
+from mpm_sim.kspace import basic_2d_recon
 
 
 _shared_options = [
@@ -59,7 +59,7 @@ def cli():
     logging.basicConfig(level=logging.INFO, format='%(levelname)s: %(message)s')
 
 
-@cli.command(help="Prepare a sample for simulation")
+@cli.command(help="Prepare a sample for simulation", context_settings={'show_default': True})
 @click.argument('seg_file', metavar='SEG_PATH', type=str)
 @click.option('--sample_name', metavar='SAMPLE_NAME', type=click.Path(),
               # help='name of sample file',
@@ -89,7 +89,7 @@ def sample(
         logging.error(f"Could not write sample to {str(out_filename)}.")
 
 
-@cli.command(help="Prepare sensitivity maps for simulation")
+@cli.command(help="Prepare sensitivity maps for simulation", context_settings={'show_default': True})
 @click.option('-m', '--sensmap_name', metavar='SENSMAP_NAME', type=click.Path(),
               help='name of sensmap file',
               default=Path('sensmaps.h5'))
@@ -122,16 +122,25 @@ def sensmap(sensmap_name, out_dir, xslice, yslice, zslice, interpolation):
         logging.error(f"Map(s) could not be written.")
 
 
-@cli.command(help="Run a basic flash reconstruction.")
+@cli.command(help="Run a basic flash reconstruction.", context_settings={'show_default': True})
 @click.argument('signals_h5', metavar='SIG_PATH', type=str)
-@click.option('-d', '--dims', metavar='DIMS', type=(int, int, int),
-              help='Dimensions for kspace ordering (default: 434, 496, 352; standard 0.5mm acquisition)',
+@click.option('--dims', metavar='DIMS', type=(int, int, int),
+              help='Dimensions for kspace ordering (default is a standard 0.5mm acquisition)',
               default=(434, 496, 352))
-@click.option('-e', '--echos', default=6,
-              help='number of echos to take into account', type=int)
-def basic_flash_recon(signals_h5, dims, echos):
-    plot_matrix(basic_recon(signals_h5, dims=dims, echos=echos))
-
+@click.option('--echos', default=6,
+              help='number of echoes to take into account', type=int)
+@click.option('--n_echo', default=None, type=int,
+              help='plot reconstructed image from this echo. default is all echoes.')
+@click.option('--n_channel', default=0,
+              help='plot reconstructed image from this channel')
+@click.option('--x_slice', default=0,
+              help='plot reconstructed image from this slice')
+def basic_flash_recon(signals_h5, dims, echos, n_echo, n_channel, x_slice):
+    echo_list = basic_2d_recon(signals_h5, dims, echos, x_slice, n_channel)
+    if n_echo is None:
+        plot_echos(echo_list)
+    else:
+        plot_matrix(echo_list[n_echo])
 
 if __name__ == '__main__':
     cli()

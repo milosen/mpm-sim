@@ -31,7 +31,8 @@ cd git_cln
 autoreconf -iv
 ./configure --prefix="$JEMRIS_PREFIX"
 make MAKEINFO=true
-make install MAKEINFO=true
+make MAKEINFO=true check 
+make MAKEINFO=true install
 cd "$JEMRIS_PREFIX"
 
 [ ! -d git_ginac ] && git clone --depth 1 --branch "$GINAC_TAG" "$GINAC_REPO" git_ginac
@@ -39,7 +40,8 @@ cd git_ginac
 autoreconf -i
 CLN_LIBS="-L$JEMRIS_PREFIX/lib -lcln" CLN_CFLAGS="-I$JEMRIS_PREFIX/include" ./configure --prefix="$JEMRIS_PREFIX"
 make MAKEINFO=true
-make install MAKEINFO=true
+make MAKEINFO=true check
+make MAKEINFO=true install
 cd "$JEMRIS_PREFIX"
 
 [ ! -d git_xerces ] && git clone --depth 1 --branch "$XERCES_TAG" "$XERCES_REPO" git_xerces
@@ -47,6 +49,7 @@ cd git_xerces
 mkdir -p build && cd build
 cmake .. -DCMAKE_PREFIX_PATH="$JEMRIS_PREFIX" -DCMAKE_INSTALL_PREFIX="$JEMRIS_PREFIX"
 make
+make test
 make install
 cd "$JEMRIS_PREFIX"
 

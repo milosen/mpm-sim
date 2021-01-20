@@ -40,7 +40,7 @@ cd "$JEMRIS_PREFIX"
 [ ! -d git_ginac ] && git clone --depth 1 --branch "$GINAC_TAG" "$GINAC_REPO" git_ginac
 cd git_ginac
 autoreconf -i
-CLN_LIBS="-L$JEMRIS_PREFIX/lib -lcln" CLN_CFLAGS="-I$JEMRIS_PREFIX/include" ./configure --prefix="$JEMRIS_PREFIX"
+CLN_LIBS="-L\"$JEMRIS_PREFIX/lib\" -lcln" CLN_CFLAGS="-I\"$JEMRIS_PREFIX/include\"" ./configure --prefix="$JEMRIS_PREFIX"
 make MAKEINFO=true -j $NTHREADS
 make MAKEINFO=true -j $NTHREADS check
 make MAKEINFO=true install

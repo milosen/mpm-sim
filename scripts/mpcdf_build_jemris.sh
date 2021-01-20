@@ -45,27 +45,18 @@ make MAKEINFO=true install
 cd "$JEMRIS_PREFIX"
 
 [ ! -d git_xerces ] && git clone --depth 1 --branch "$XERCES_TAG" "$XERCES_REPO" git_xerces
-cd git_xerces
-mkdir -p build && cd build
-cmake .. -DCMAKE_PREFIX_PATH="$JEMRIS_PREFIX" -DCMAKE_INSTALL_PREFIX="$JEMRIS_PREFIX"
-make
-make test
-make install
-cd "$JEMRIS_PREFIX"
+cmake -S git_xerces -B git_xerces/build -DCMAKE_PREFIX_PATH="$JEMRIS_PREFIX" -DCMAKE_INSTALL_PREFIX="$JEMRIS_PREFIX"
+cmake --build git_xerces/build
+cmake --build git_xerces/build --target test # potentially ctest is the better option
+cmake --build git_xerces/build --target install
 
 [ ! -d git_sundials ] && git clone --depth 1 --branch "$SUNDIALS_TAG" "$SUNDIALS_REPO" git_sundials
-cd git_sundials
-mkdir -p build && cd build
-cmake .. -DCMAKE_PREFIX_PATH="$JEMRIS_PREFIX" -DCMAKE_INSTALL_PREFIX="$JEMRIS_PREFIX"
-make
-make install
-cd "$JEMRIS_PREFIX"
+cmake -S git_sundials -B git_sundials/build -DCMAKE_PREFIX_PATH="$JEMRIS_PREFIX" -DCMAKE_INSTALL_PREFIX="$JEMRIS_PREFIX"
+cmake --build git_sundials/build
+cmake --build git_sundials/build --target install
 
 [ ! -d git_jemris ] && git clone --depth 1 --branch "$JEMRIS_TAG" "$JEMRIS_REPO" git_jemris
-cd git_jemris
-mkdir -p build && cd build
-PKG_CONFIG_PATH="$JEMRIS_PREFIX/lib/pkgconfig" cmake .. -DCMAKE_PREFIX_PATH="$JEMRIS_PREFIX" -DCMAKE_INSTALL_PREFIX="$JEMRIS_PREFIX"
-make
-make install
-cd "$JEMRIS_PREFIX/.."
+PKG_CONFIG_PATH="$JEMRIS_PREFIX/lib/pkgconfig" cmake -S git_jemris -B git_jemris/build -DCMAKE_PREFIX_PATH="$JEMRIS_PREFIX" -DCMAKE_INSTALL_PREFIX="$JEMRIS_PREFIX"
+cmake --build git_jemris/build
+cmake --build git_jemris/build --target install
 

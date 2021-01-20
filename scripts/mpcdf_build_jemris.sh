@@ -8,7 +8,7 @@ mkdir -p jemris
 cd jemris
 JEMRIS_PREFIX=$(realpath .)
 
-JEMRIS_REPO="git@github.com:JEMRIS/jemris.git"
+JEMRIS_REPO="https://github.com/JEMRIS/jemris.git"
 JEMRIS_TAG="v2.8.3"
 
 CLN_REPO="git://www.ginac.de/cln.git"
@@ -17,10 +17,10 @@ CLN_TAG="cln_1-3-4"
 GINAC_REPO="git://www.ginac.de/ginac.git"
 GINAC_TAG="release_1-7-4"
 
-XERCES_REPO="git@github.com:apache/xerces-c.git"
+XERCES_REPO="https://github.com/apache/xerces-c.git"
 XERCES_TAG="v3.2.3"
 
-SUNDIALS_REPO="git@github.com:LLNL/sundials.git"
+SUNDIALS_REPO="https://github.com/LLNL/sundials.git"
 SUNDIALS_TAG="v2.7.0"
 
 module purge

@@ -23,6 +23,8 @@ XERCES_TAG="v3.2.3"
 SUNDIALS_REPO="https://github.com/LLNL/sundials.git"
 SUNDIALS_TAG="v2.7.0"
 
+NTHREADS=$(nproc)
+
 module purge
 module load git cmake gcc openmpi hdf5-serial boost autoconf automake libtool pkg-config
 
@@ -30,8 +32,8 @@ module load git cmake gcc openmpi hdf5-serial boost autoconf automake libtool pk
 cd git_cln
 autoreconf -iv
 ./configure --prefix="$JEMRIS_PREFIX"
-make MAKEINFO=true
-make MAKEINFO=true check 
+make MAKEINFO=true -j $NTHREADS
+make MAKEINFO=true -j $NTHREADS check
 make MAKEINFO=true install
 cd "$JEMRIS_PREFIX"
 
@@ -39,24 +41,24 @@ cd "$JEMRIS_PREFIX"
 cd git_ginac
 autoreconf -i
 CLN_LIBS="-L$JEMRIS_PREFIX/lib -lcln" CLN_CFLAGS="-I$JEMRIS_PREFIX/include" ./configure --prefix="$JEMRIS_PREFIX"
-make MAKEINFO=true
-make MAKEINFO=true check
+make MAKEINFO=true -j $NTHREADS
+make MAKEINFO=true -j $NTHREADS check
 make MAKEINFO=true install
 cd "$JEMRIS_PREFIX"
 
 [ ! -d git_xerces ] && git clone --depth 1 --branch "$XERCES_TAG" "$XERCES_REPO" git_xerces
 cmake -S git_xerces -B git_xerces/build -DCMAKE_PREFIX_PATH="$JEMRIS_PREFIX" -DCMAKE_INSTALL_PREFIX="$JEMRIS_PREFIX"
-cmake --build git_xerces/build
-cmake --build git_xerces/build --target test # potentially ctest is the better option
+cmake --build git_xerces/build -j $NTHREADS
+cmake --build git_xerces/build --target test -j $NTHREADS # potentially ctest is the better option
 cmake --build git_xerces/build --target install
 
 [ ! -d git_sundials ] && git clone --depth 1 --branch "$SUNDIALS_TAG" "$SUNDIALS_REPO" git_sundials
 cmake -S git_sundials -B git_sundials/build -DCMAKE_PREFIX_PATH="$JEMRIS_PREFIX" -DCMAKE_INSTALL_PREFIX="$JEMRIS_PREFIX"
-cmake --build git_sundials/build
+cmake --build git_sundials/build -j $NTHREADS
 cmake --build git_sundials/build --target install
 
 [ ! -d git_jemris ] && git clone --depth 1 --branch "$JEMRIS_TAG" "$JEMRIS_REPO" git_jemris
 PKG_CONFIG_PATH="$JEMRIS_PREFIX/lib/pkgconfig" cmake -S git_jemris -B git_jemris/build -DCMAKE_PREFIX_PATH="$JEMRIS_PREFIX" -DCMAKE_INSTALL_PREFIX="$JEMRIS_PREFIX"
-cmake --build git_jemris/build
+cmake --build git_jemris/build -j $NTHREADS
 cmake --build git_jemris/build --target install
 

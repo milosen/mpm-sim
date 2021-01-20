@@ -24,7 +24,7 @@ SUNDIALS_REPO="https://github.com/LLNL/sundials.git"
 SUNDIALS_TAG="v2.7.0"
 
 module purge
-module load gcc openmpi hdf5-serial boost autoconf automake libtool pkg-config
+module load git cmake gcc openmpi hdf5-serial boost autoconf automake libtool pkg-config
 
 [ ! -d git_cln ] && git clone --depth 1 --branch "$CLN_TAG" "$CLN_REPO" git_cln
 cd git_cln

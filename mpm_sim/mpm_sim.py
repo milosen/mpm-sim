@@ -5,11 +5,13 @@ from datetime import datetime
 from typing import Tuple
 
 import click
+import numpy as np
 
 from mpm_sim.sample import write_nifti_sample
 from mpm_sim.utils import plot_matrix, plot_echos
 from mpm_sim.sensmap import write_nifti_sensmap
-from mpm_sim.kspace import basic_2d_recon
+from mpm_sim.kspace import basic_2d_recon, load_h5_signal, flash_order_kspace
+from bart.cfl import writecfl
 
 
 _shared_options = [
@@ -141,6 +143,33 @@ def basic_flash_recon(signals_h5, dims, echos, n_echo, n_channel, x_slice):
         plot_echos(echo_list)
     else:
         plot_matrix(echo_list[n_echo])
+
+
+@cli.command(help="Run a basic flash reconstruction.", context_settings={'show_default': True})
+@click.argument('signals_h5', metavar='SIG_PATH', type=str)
+@click.option('--dims', metavar='DIMS', type=(int, int, int),
+              help='Dimensions for kspace ordering (default is a standard 0.5mm acquisition)',
+              default=(434, 496, 352))
+@click.option('--echos', default=6,
+              help='number of echoes to take into account', type=int)
+@click.option('--n_echo', default=0, type=int,
+              help='plot reconstructed image from this echo. default is all echoes.')
+@click.option('--n_channel', default=0,
+              help='plot reconstructed image from this channel')
+@click.option('--x_slice', default=0,
+              help='plot reconstructed image from this slice')
+def order_kspace(signals_h5, dims, echos, n_echo, n_channel, x_slice):
+    _, m = load_h5_signal(signals_h5)
+    kspace = flash_order_kspace(m, dimensions=dims, echos=echos)[:, n_echo, :, x_slice, n_channel]
+    if n_echo % 2 == 1:
+        kspace = np.flip(kspace, axis=0)
+    plot_matrix(np.absolute(kspace))
+    img = np.absolute(np.fft.ifftshift(np.fft.ifft2(kspace)))
+    plot_matrix(img)
+    kspace = kspace.reshape(kspace.shape[0], kspace.shape[1], 1, 1, 1, 1)
+    print("kspace shape: ", kspace.shape)
+    writecfl("slice_i6_echo_1", kspace)
+
 
 if __name__ == '__main__':
     cli()

@@ -8,7 +8,7 @@ import click
 import numpy as np
 
 from mpm_sim.sample import write_nifti_sample
-from mpm_sim.utils import plot_matrix, plot_echos
+from mpm_sim.utils import plot_matrix, plot_echos, load_nifty
 from mpm_sim.sensmap import write_nifti_sensmap
 from mpm_sim.kspace import basic_2d_recon, load_h5_signal, flash_order_kspace
 from bart.cfl import writecfl
@@ -169,6 +169,15 @@ def order_kspace(signals_h5, dims, echos, n_echo, n_channel, x_slice):
     kspace = kspace.reshape(kspace.shape[0], kspace.shape[1], 1, 1, 1, 1)
     print("kspace shape: ", kspace.shape)
     writecfl("slice_i6_echo_1", kspace)
+
+
+@cli.command(help="Plot a slice of a nifti volume.", context_settings={'show_default': True})
+@click.argument('nifti_file', metavar='FILE_PATH', type=str)
+@click.option('--x_slice', default=200,
+              help='plot this slice')
+def plot_nifti(nifti_file, x_slice):
+    data, header = load_nifty(nifti_file)
+    plot_matrix(data[x_slice])
 
 
 if __name__ == '__main__':

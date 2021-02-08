@@ -71,12 +71,10 @@
             <DELAYATOMICSEQUENCE Delay="820e-3" Name="D6"/>
             <CONCATSEQUENCE Name="C1" Repetitions="1">
                <ATOMICSEQUENCE Name="GSpoil">
-                  <TRAPGRADPULSE Area="6*6.28" Axis="GZ" Duration="6790e-3" Name="GS"
-                                 Observe="KMX=P.KMAXz, A=GEP.Area"
-                                 SlewRate="0.13e3"/>
+                  <TRAPGRADPULSE Area="6*A" Axis="GZ" Duration="9300e-3" Name="GS"
+                                 Observe="KMX=P.KMAXz, A=GEP.Area"/>
                </ATOMICSEQUENCE>
             </CONCATSEQUENCE>
-            <DELAYATOMICSEQUENCE Delay="1200e-3" Name="D7"/>
          </ConcatSequence>
       </CONCATSEQUENCE>
    </ConcatSequence>

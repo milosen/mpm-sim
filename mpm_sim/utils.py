@@ -18,7 +18,7 @@ def load_nifty(path: str) -> tuple:
 
 def plot_matrix(mat: ndarray, title: str = '') -> None:
     """Plot a 2D numpy array like an image."""
-    cax = plt.matshow(mat, cmap='gray')
+    cax = plt.matshow(mat, cmap='gray', interpolation='none')
     plt.colorbar(cax)
     plt.title(title)
     plt.show()
@@ -56,8 +56,10 @@ def preprocess_array(data: ndarray, slicing: Tuple[slice, slice, slice] = (
 def plot_echos(arr: List[ndarray], title: str = '') -> None:
     """Plot a 2D numpy array like an image."""
     f, axarr = plt.subplots(2, 3)
-    for i, mat in enumerate(arr):
-        axarr[i//3, i%3].imshow(mat, cmap='gray')
+    im = axarr[0, 0].imshow(arr[0], cmap='gray')
+    clim=im.properties()['clim']
+    for i in range(1, 6):
+        axarr[i//3, i%3].imshow(arr[i], cmap='gray')
     plt.title(title)
     plt.show()
 

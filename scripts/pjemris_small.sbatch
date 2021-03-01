@@ -18,5 +18,6 @@
 #SBATCH --time=24:00:00
 
 # Run the program:
-srun jemris/bin/pjemris simu.xml &> pjemris.out
+module load gcc openmpi hdf5-serial boost
+srun ../../jemris/bin/pjemris simu.xml &> pjemris.out
 

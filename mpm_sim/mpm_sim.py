@@ -68,8 +68,7 @@ def cli():
               default='sample.h5')
 @add_options(_shared_options)
 @add_options(_array_options)
-def sample(
-        seg_file, sample_name, interpolation, out_dir, xslice, yslice, zslice):
+def sample(seg_file, sample_name, interpolation, out_dir, xslice, yslice, zslice):
     out_dir = out_mkdir(out_dir)
     # write sample
     out_filename = out_dir / sample_name
@@ -105,7 +104,7 @@ def sensmap(sensmap_name, out_dir, xslice, yslice, zslice, interpolation):
            for ch in range(1, n_coils + 1)]
     ph = [f'/nobackup/maki2/former_eminem2/vaculciakova/forNikola/coil_sens/Coils_ch{ch}_Phase.nii'
           for ch in range(1, n_coils + 1)]
-    coil_xml_path = out_dir / Path('RXext.xml')
+    coil_xml_path = out_dir / Path('RX.xml')
     data_sensmap = write_nifti_sensmap(
         mag, ph, str(out_dir), str(sensmap_name), coil_xml=str(coil_xml_path),
         n_coils=n_coils,
@@ -166,7 +165,7 @@ def order_kspace(signals_h5, dims, echos, n_echo, n_channel, x_slice):
     plot_matrix(np.absolute(kspace))
     img = np.absolute(np.fft.ifftshift(np.fft.ifft2(kspace)))
     plot_matrix(img)
-    kspace = kspace.reshape(kspace.shape[0], kspace.shape[1], 1, 1, 1, 1)
+    kspace = kspace.reshape([kspace.shape[0], kspace.shape[1], 1, 1, 1, 1])
     print("kspace shape: ", kspace.shape)
     writecfl("slice_i6_echo_1", kspace)
 

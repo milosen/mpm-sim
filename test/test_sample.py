@@ -5,7 +5,7 @@ from numpy import ndarray
 
 from test.helper import TestHelper as Helper
 from mpm_sim.utils import plot_matrix
-from mpm_sim.sample import interpolate, lookup_mpm, \
+from mpm_sim.sample import lookup_mpm, \
     write_nifti_sample
 from mpm_sim.utils import load_nifty
 
@@ -18,22 +18,11 @@ class TestSampleUtils(unittest.TestCase):
         print("Shape: ", data.shape, "; Size: ", data.size)
         self.assertIsInstance(data, ndarray, "Loaded data is not an ndarray.")
 
-    def test_interpolation(self, factor=2):
-        data, _ = load_nifty(Helper.data['nifti_file'])
-        interpolated_data = interpolate(data, factor=factor)
-        plot_matrix(
-            interpolated_data[:, :, int(Helper.test_slice*factor)],
-            'Interpolated Segmentation'
-        )
-        print("Test Interpolation")
-        print("Shape: ", interpolated_data.shape, "; Size: ", interpolated_data.size)
-        self.assertEqual(factor**3*data.size, interpolated_data.size, "Unexpected array size.")
-
     def test_segmentation_lookup(self):
         seg_data, _ = load_nifty(Helper.data['nifti_file'])
         x, y, z = seg_data.shape
         mpm_data = lookup_mpm(seg_data)
-        plot_matrix(mpm_data[:, :, Helper.test_slice, 0], 'MPM')
+        plot_matrix(mpm_data[:, :, Helper.test_slice, 0], 'MPM ()')
         print("Test Segmentation Lookup")
         print("Shape: ", mpm_data.shape, "; Size: ", mpm_data.size)
         self.assertEqual(mpm_data.shape, (x, y, z, 5), "Unexpected array shape.")

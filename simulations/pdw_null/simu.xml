@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<simulate name="Simulation">
+   <sample name="Sample" uri="sample.h5"/>
+   <RXcoilarray uri="RX.xml"/>
+   <TXcoilarray uri="TX.xml"/>
+   <parameter ConcomitantFields="0" EvolutionPrefix="evol" EvolutionSteps="0" RandomNoise="0"/>
+   <sequence name="Sequence" uri="sequence.xml"/>
+   <model name="Bloch" type="CVODE"/>
+</simulate>

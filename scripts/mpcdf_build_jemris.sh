@@ -8,8 +8,8 @@ mkdir -p jemris
 cd jemris
 JEMRIS_PREFIX=$(realpath .)
 
-JEMRIS_REPO="https://github.com/JEMRIS/jemris.git"
-JEMRIS_TAG="v2.8.3"
+JEMRIS_REPO="https://github.com/milosen/jemris.git"
+JEMRIS_TAG="null-transverse"
 
 CLN_REPO="git://www.ginac.de/cln.git"
 CLN_TAG="cln_1-3-4"
@@ -25,13 +25,15 @@ SUNDIALS_TAG="v2.7.0"
 
 NTHREADS=$(nproc)
 
+COMPILER_FLAGS="-O3 -march=skylake-avx512"
+
 module purge
 module load git cmake gcc openmpi hdf5-serial boost autoconf automake libtool pkg-config
 
 [ ! -d git_cln ] && git clone --depth 1 --branch "$CLN_TAG" "$CLN_REPO" git_cln
 cd git_cln
 autoreconf -iv
-./configure --prefix="$JEMRIS_PREFIX"
+CFLAGS="$COMPILER_FLAGS" CXXFLAGS="$COMPILER_FLAGS" ./configure --prefix="$JEMRIS_PREFIX"
 make MAKEINFO=true -j $NTHREADS
 make MAKEINFO=true -j $NTHREADS check
 make MAKEINFO=true install
@@ -40,7 +42,7 @@ cd "$JEMRIS_PREFIX"
 [ ! -d git_ginac ] && git clone --depth 1 --branch "$GINAC_TAG" "$GINAC_REPO" git_ginac
 cd git_ginac
 autoreconf -i
-CLN_LIBS="-L\"$JEMRIS_PREFIX/lib\" -lcln" CLN_CFLAGS="-I\"$JEMRIS_PREFIX/include\"" ./configure --prefix="$JEMRIS_PREFIX"
+CLN_LIBS="-L\"$JEMRIS_PREFIX/lib\" -lcln" CLN_CFLAGS="-I\"$JEMRIS_PREFIX/include\"" CFLAGS="$COMPILER_FLAGS" CXXFLAGS="$COMPILER_FLAGS" ./configure --prefix="$JEMRIS_PREFIX"
 make MAKEINFO=true -j $NTHREADS
 make MAKEINFO=true -j $NTHREADS check
 make MAKEINFO=true install

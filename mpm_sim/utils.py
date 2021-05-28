@@ -1,12 +1,44 @@
 import matplotlib.pyplot as plt
 from numpy import ndarray
 import nibabel as nib
-from typing import Tuple, List
+from typing import Tuple, List, Union
+from pathlib import Path
 
 from scipy import ndimage
 
 
-def load_nifty(path: str) -> tuple:
+Slices = Tuple[slice, slice, slice]
+Slice = Tuple[int, int]
+SpatialDims = Tuple[int, int, int]
+
+NONE_SLICE = (None, None)
+NONE_SLICES = (NONE_SLICE, NONE_SLICE, NONE_SLICE)
+
+
+def slicing(slices: Tuple[Slice, Slice, Slice]) -> Slices:
+
+    return (
+        slice(slices[0][0], slices[0][1]),
+        slice(slices[1][0], slices[1][1]),
+        slice(slices[2][0], slices[2][1])
+    )
+
+
+def dims_slices(slices: Slices) -> int:
+    """Given a Slices object, how many dimensions will the sliced data have, 2 or 3?
+
+    :param slices: Slices object
+    :return: number of dimensions that the Slices object produces
+    """
+    if 1 in [slice_dim.stop - slice_dim.start
+             if slice_dim.stop is not None and slice_dim.start is not None else 0
+             for slice_dim in slices]:
+        return 2
+    else:
+        return 3
+
+
+def load_nifty(path: Union[str, Path]) -> tuple:
     """Prepare content of nifti file for further processing
 
     :param path: path to nifti file
@@ -44,13 +76,13 @@ def interpolate(data: ndarray, factor: float) -> ndarray:
     return ndimage.zoom(data, factor, order=0, mode='nearest')
 
 
-def preprocess_array(data: ndarray, slicing: Tuple[slice, slice, slice] = (
-                             slice(None, None), slice(None, None), slice(None, None)
-                     ),
-                     transpose_array: Tuple[int, int, int] = (0, 1, 2),
+def preprocess_array(data: ndarray, slicings: Slices = NONE_SLICES,
+                     transpose_array: SpatialDims = (0, 1, 2),
                      interpolation_factor=1) -> ndarray:
     """Interpolate, slice and transpose a 3d array"""
-    return interpolate(data[slicing].transpose(transpose_array), interpolation_factor)
+
+    arr = data[slicing(slicings)].transpose(transpose_array)
+    return interpolate(arr, interpolation_factor)
 
 
 def plot_echos(arr: List[ndarray], title: str = '') -> None:
@@ -62,4 +94,3 @@ def plot_echos(arr: List[ndarray], title: str = '') -> None:
         axarr[i//3, i%3].imshow(arr[i], cmap='gray')
     plt.title(title)
     plt.show()
-

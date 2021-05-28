@@ -103,16 +103,20 @@ def write_nifti_sample(segmentation_path: Path, sample_path: Path = Path('sample
 
     if isinstance(offset, (float, int)):
         offset = (offset for _ in range(3))
-
+    
+    logging.info("Apply transformations to segmentation data...")
     # apply transformations
     transformed_data = mpm_utils.preprocess_array(data, slices, transpose_array, interpolation_factor)
 
+    logging.info("Calculate MPMs...")
     # look up sample parameters
     mpm_data = lookup_mpm(transformed_data)
 
+    logging.info("Translate into HDF5 format...")
     # translate to jemris readable format
     h5_sample = mk_h5_sample(mpm_data)
 
+    logging.info("Write HDF5 sample to disc...")
     # write h5 sample to disc
     if sample_path.exists():
         sample_path.unlink()

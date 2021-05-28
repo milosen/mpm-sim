@@ -76,12 +76,12 @@ def interpolate(data: ndarray, factor: float) -> ndarray:
     return ndimage.zoom(data, factor, order=0, mode='nearest')
 
 
-def preprocess_array(data: ndarray, slicings: Slices = NONE_SLICES,
+def preprocess_array(data: ndarray, slices: Slices,
                      transpose_array: SpatialDims = (0, 1, 2),
                      interpolation_factor=1) -> ndarray:
     """Interpolate, slice and transpose a 3d array"""
 
-    arr = data[slicing(slicings)].transpose(transpose_array)
+    arr = data[slices].transpose(transpose_array)
     return interpolate(arr, interpolation_factor)
 
 

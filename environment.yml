@@ -13,3 +13,4 @@ dependencies:
   - click=7.1.2
   - conda-build
   - lxml
+  - pytest

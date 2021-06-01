@@ -96,11 +96,3 @@ def write_kspace(signals_h5, dims, echoes, plot=True):
         plot_matrix(np.absolute(plot_kspace))
         img = np.absolute(np.fft.ifftshift(np.fft.ifft2(plot_kspace)))
         plot_matrix(img)
-
-
-def basic_2d_recon(signals_h5: str, dims: Tuple[int, int, int] = (434, 496, 352),
-                   echos: int = 6, x_slice=0, channel=0) -> List[np.ndarray]:
-    _, m = load_h5_signal(signals_h5)
-    kspaces = [flash_order_kspace(m, dimensions=dims, echos=echos)[:, echo, :, x_slice, channel] for echo in range(echos)]
-    kspaces = [np.flip(kspace, axis=0) if i % 2 == 1 else kspace for i, kspace in enumerate(kspaces)]
-    return [np.absolute(np.fft.ifftshift(np.fft.ifft2(kspace))) for kspace in kspaces]

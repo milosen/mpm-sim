@@ -68,12 +68,13 @@ def mk_h5_sample(data: np.ndarray, db: Union[np.ndarray, None] = None) -> np.nda
     return sample
 
 
-def write_nifti_sample(segmentation_path: Path, sample_path: Path = Path('sample.h5'),
-                       slices: mpm_utils.Slices = mpm_utils.NONE_SLICES,
-                       transpose_array: Tuple[int, int, int] = (0, 1, 2),
-                       interpolation_factor: int = 1,
-                       resolution_mm: Union[tuple, int, float] = None,
-                       offset: Union[tuple, int, float] = (0, 0, 0)) -> bool:
+def write_sample(segmentation_path: Path, sample_path: Path = Path('sample.h5'),
+                 slices: mpm_utils.Slices = mpm_utils.NONE_SLICES,
+                 transpose_array: Tuple[int, int, int] = (0, 1, 2),
+                 interpolation_factor: int = 1,
+                 resolution_mm: Union[tuple, int, float] = None,
+                 offset: Union[tuple, int, float] = (0, 0, 0),
+                 plot: bool = False) -> bool:
     """Use a brain segmentation in nifti format as a template for a JEMRIS
     sample and write the sample to disk.
 
@@ -90,9 +91,10 @@ def write_nifti_sample(segmentation_path: Path, sample_path: Path = Path('sample
     :param resolution_mm: size of each spin compartment in mm (voxel size after interpolation).
                           Default: None (try to calc from header data)
     :param offset: Offset for sample position in space. Default: no offset will be applied.
+    :param plot: plot slice of the created sample.
     :return: True on success
     """
-    data, header = mpm_utils.load_nifty(segmentation_path)
+    data, header = mpm_utils.load_nifti(segmentation_path)
 
     # check resolution and offset parameters
     # if no resolution is provided, calculate from header info and interpolation factor
@@ -134,7 +136,8 @@ def write_nifti_sample(segmentation_path: Path, sample_path: Path = Path('sample
         logging.info(f'Segmentation file: {segmentation_path}')
         logging.info(f'HDF5 sample shape (Params, X, Y, Z): {h5_sample.shape}')
         logging.info(f'Dest: {sample_path}')
-        mpm_utils.plot_matrix(h5_sample[0, 0], 'JEMRIS sample')
+        if plot:
+            mpm_utils.plot_matrix(h5_sample[0, 0], 'JEMRIS sample')
         return True
     else:
         logging.error(f"Could not write sample to {sample_path}.")

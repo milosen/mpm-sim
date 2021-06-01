@@ -16,7 +16,6 @@ NONE_SLICES = (NONE_SLICE, NONE_SLICE, NONE_SLICE)
 
 
 def slicing(slices: Tuple[Slice, Slice, Slice]) -> Slices:
-
     return (
         slice(slices[0][0], slices[0][1]),
         slice(slices[1][0], slices[1][1]),
@@ -38,7 +37,7 @@ def dims_slices(slices: Slices) -> int:
         return 3
 
 
-def load_nifty(path: Union[str, Path]) -> tuple:
+def load_nifti(path: Union[str, Path]) -> tuple:
     """Prepare content of nifti file for further processing
 
     :param path: path to nifti file
@@ -53,6 +52,7 @@ def plot_matrix(mat: ndarray, title: str = '') -> None:
     cax = plt.matshow(mat, cmap='gray', interpolation='none')
     plt.colorbar(cax)
     plt.title(title)
+    plt.draw()
     plt.show()
 
 
@@ -63,6 +63,20 @@ def overlay(im1: ndarray, im2: ndarray, title: str = '') -> None:
     plt.imshow(im2, interpolation=None, alpha=0.5)
     plt.colorbar(cax)
     plt.title(title)
+    plt.draw()
+    plt.show()
+
+
+def plot_list(data: list) -> None:
+    """Interpolate 'data' by 'factor' in each dimension using nearest neighbor interpolation.
+
+    :param data: list of tuples [(ndarray, "Title"), (ndarray, "Title"), ...]
+    :param show: show and wait for user to close plot
+    """
+    _, axs = plt.subplots(1, len(data))
+    for (d, t), ax in zip(data, axs):
+        ax.imshow(d)
+        ax.set_title(t)
     plt.show()
 
 
@@ -83,14 +97,3 @@ def preprocess_array(data: ndarray, slices: Slices,
 
     arr = data[slices].transpose(transpose_array)
     return interpolate(arr, interpolation_factor)
-
-
-def plot_echos(arr: List[ndarray], title: str = '') -> None:
-    """Plot a 2D numpy array like an image."""
-    f, axarr = plt.subplots(2, 3)
-    im = axarr[0, 0].imshow(arr[0], cmap='gray')
-    clim=im.properties()['clim']
-    for i in range(1, 6):
-        axarr[i//3, i%3].imshow(arr[i], cmap='gray')
-    plt.title(title)
-    plt.show()

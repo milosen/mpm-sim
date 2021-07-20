@@ -1,7 +1,7 @@
 import matplotlib.pyplot as plt
 from numpy import ndarray
 import nibabel as nib
-from typing import Tuple, List, Union
+from typing import Tuple, Union
 from pathlib import Path
 
 from scipy import ndimage
@@ -97,3 +97,8 @@ def preprocess_array(data: ndarray, slices: Slices,
 
     arr = data[slices].transpose(transpose_array)
     return interpolate(arr, interpolation_factor)
+
+
+def full_dir(path: Path):
+    """Get full path of the containing directory"""
+    return path.absolute().parent

@@ -5,20 +5,22 @@ import logging
 from pathlib import Path
 
 import mpm_sim.utils as mpm_utils
+from mpm_sim.simulation import Simulation
 import lxml.etree as et
 
 
-def register_coil(extent: float, points: int,
-                  dim: int = 3, map_path: Path = Path('sensmaps.h5'),
-                  coil_xml_path: Path = None, overwrite: bool = False):
-
-    if coil_xml_path is None:
-        coil_xml_path = map_path.absolute().parent / Path("RX.xml")
+def register_coil(coil_xml_path: Path, map_path: Path,
+                  extent: float, points: int, dim: int = 3, overwrite: bool = False):
 
     if coil_xml_path.exists() and overwrite is False:
+        logging.info("Append new coil to coil array file.")
         parser = et.XMLParser(remove_blank_text=True)
         coil_array = et.parse(str(coil_xml_path), parser).getroot()
     else:
+        if overwrite is True:
+            logging.info("Replace old coil array file.")
+        else:
+            logging.info("Create new coil array file.")
         coil_array = et.Element('CoilArray')
 
     external_coil = et.SubElement(coil_array, 'EXTERNALCOIL')
@@ -49,12 +51,13 @@ def square(data_magmap, data_phasemap):
     return data_magmap, data_phasemap, edge_size
 
 
-def write_sensmap(magmap: Path, phasemap: Path, map_path: Path, slices=mpm_utils.NONE_SLICES,
+def write_sensmap(magmap: Path, phasemap: Path, sim_dir_path, map_name: Path, slices=mpm_utils.NONE_SLICES,
                   transpose_array: Tuple[int, int, int] = (0, 1, 2), resolution: float = 0.5,
                   overwrite: bool = False):
 
-    if map_path.suffix == '':
-        map_path = map_path.with_suffix('.h5')
+    simu = Simulation(sim_dir_path)
+
+    map_path = sim_dir_path / map_name.with_suffix('.h5')
 
     interp = 1
     data_magmap = mpm_utils.preprocess_array(mpm_utils.load_nifti(magmap)[0], slices, transpose_array, interp)
@@ -80,9 +83,10 @@ def write_sensmap(magmap: Path, phasemap: Path, map_path: Path, slices=mpm_utils
         maps.create_dataset('magnitude', data=data_magmap.transpose())
         maps.create_dataset('phase', data=data_phasemap.transpose())
 
-    coil_xml_path = map_path.absolute().parent / Path('RX.xml')
+    coil_xml_path = map_path.absolute().parent / simu.paths['RX_FILE']
     logging.info(f'Writing coil XML file (location: {coil_xml_path})...')
     register_coil(
+        coil_xml_path,
         extent=max(magmap_shape)*resolution, points=max(magmap_shape),
         map_path=map_path, dim=dims, overwrite=overwrite
     )

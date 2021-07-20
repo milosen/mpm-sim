@@ -7,6 +7,7 @@ import h5py
 
 
 import mpm_sim.utils as mpm_utils
+from mpm_sim.simulation import Simulation
 
 
 class BrainModel:
@@ -68,7 +69,8 @@ def mk_h5_sample(data: np.ndarray, db: Union[np.ndarray, None] = None) -> np.nda
     return sample
 
 
-def write_sample(segmentation_path: Path, sample_path: Path = Path('sample.h5'),
+def write_sample(segmentation_path: Path,
+                 simu_path: Path,
                  slices: mpm_utils.Slices = mpm_utils.NONE_SLICES,
                  transpose_array: Tuple[int, int, int] = (0, 1, 2),
                  interpolation_factor: int = 1,
@@ -95,6 +97,7 @@ def write_sample(segmentation_path: Path, sample_path: Path = Path('sample.h5'),
     :return: True on success
     """
     data, header = mpm_utils.load_nifti(segmentation_path)
+    simu = Simulation(simu_path)
 
     # check resolution and offset parameters
     # if no resolution is provided, calculate from header info and interpolation factor
@@ -107,23 +110,20 @@ def write_sample(segmentation_path: Path, sample_path: Path = Path('sample.h5'),
         offset = (offset for _ in range(3))
     
     logging.info("Apply transformations to segmentation data...")
-    # apply transformations
     transformed_data = mpm_utils.preprocess_array(data, slices, transpose_array, interpolation_factor)
 
     logging.info("Calculate MPMs...")
-    # look up sample parameters
     mpm_data = lookup_mpm(transformed_data)
 
     logging.info("Translate into HDF5 format...")
-    # translate to jemris readable format
     h5_sample = mk_h5_sample(mpm_data)
 
     logging.info("Write HDF5 sample to disc...")
-    # write h5 sample to disc
-    if sample_path.exists():
-        sample_path.unlink()
+    sample_file = simu.paths['SAMPLE_FILE']
+    if sample_file.exists():
+        sample_file.unlink()
 
-    with h5py.File(sample_path, 'w') as hf:
+    with h5py.File(sample_file, 'w') as hf:
         s = hf.create_group('sample')
         s.create_dataset('data', data=h5_sample.transpose())
         s.create_dataset('resolution', data=resolution_mm)
@@ -131,14 +131,14 @@ def write_sample(segmentation_path: Path, sample_path: Path = Path('sample.h5'),
         # if pools is not None:
         #     hf.create_dataset('exchange', data=np.transpose(n_pool_exchange_matrix(pools)))
 
-    if sample_path.exists():
+    if sample_file.exists():
         logging.info('Sample written:')
         logging.info(f'Segmentation file: {segmentation_path}')
         logging.info(f'HDF5 sample shape (Params, X, Y, Z): {h5_sample.shape}')
-        logging.info(f'Dest: {sample_path}')
+        logging.info(f'Dest: {sample_file}')
         if plot:
             mpm_utils.plot_matrix(h5_sample[0, 0], 'JEMRIS sample')
         return True
     else:
-        logging.error(f"Could not write sample to {sample_path}.")
+        logging.error(f"Could not write sample to {sample_file}.")
         return False

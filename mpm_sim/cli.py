@@ -7,6 +7,7 @@ from mpm_sim.sample import write_sample
 import mpm_sim.utils as mpm_utils
 from mpm_sim.sensmap import write_sensmap
 from mpm_sim.kspace import write_kspace
+from mpm_sim.simulation import Simulation
 
 _array_options = [
     click.option('-i', '--interpolation', metavar='INTERP_FACTOR', default=1,
@@ -37,23 +38,25 @@ def cli():
 
 
 @cli.command(help="Prepare a sample for simulation", context_settings={'show_default': True})
-@click.argument('seg_path', metavar='SEGMENATION_PATH', type=click.Path())
-@click.option('--sample_path', type=click.Path(), help='name of sample file', default=Path('sample.h5'))
+@click.argument('seg_path', type=click.Path())
+@click.argument('sim_dir_path', type=click.Path())
 @add_options(_array_options)
-def sample(seg_path, sample_path, xslice, yslice, zslice, interpolation, transpose):
-    write_sample(Path(seg_path), sample_path, slices=mpm_utils.slicing((xslice, yslice, zslice)),
+def sample(seg_path, sim_dir_path, xslice, yslice, zslice, interpolation, transpose):
+    write_sample(Path(seg_path), Path(sim_dir_path), slices=mpm_utils.slicing((xslice, yslice, zslice)),
                  transpose_array=transpose, interpolation_factor=interpolation)
 
 
 @cli.command(help="Prepare sensitivity maps for simulation", context_settings={'show_default': True})
-@click.argument('magnitude_map_path', metavar='MAGNITUDE_MAP_PATH', type=click.Path())
-@click.argument('phase_map_path', metavar='PHASE_MAP_PATH', type=click.Path())
-@click.option('-o', '--out', metavar='OUT_PATH', type=click.Path(), help='Name of coil file', default=Path('sensmap.h5'))
+@click.argument('magnitude_map_path', type=click.Path())
+@click.argument('phase_map_path', type=click.Path())
+@click.argument('sim_dir_path', type=click.Path())
+@click.option('--coil_name', type=bool, help='Name of the coil ().', default='coil')
 @click.option('--overwrite/--no-overwrite', type=bool, help='Start new coil xml file', default=False)
 @add_options(_array_options)
-def sensmap(magnitude_map_path, phase_map_path, out, xslice, yslice, zslice, interpolation, transpose, overwrite):
+def sensmap(magnitude_map_path, phase_map_path, sim_dir_path, map_name, xslice, yslice, zslice,
+            interpolation, transpose, overwrite):
     write_sensmap(
-        Path(magnitude_map_path), Path(phase_map_path), Path(out),
+        Path(magnitude_map_path), Path(phase_map_path), Path(sim_dir_path), map_name=Path(map_name),
         slices=mpm_utils.slicing((xslice, yslice, zslice)), transpose_array=transpose,
         overwrite=overwrite
     )
@@ -66,6 +69,21 @@ def sensmap(magnitude_map_path, phase_map_path, out, xslice, yslice, zslice, int
 @click.option('--echoes', default=6, help='number of echoes to take into account', type=int)
 def kspace(signals_h5, dims, echoes):
     write_kspace(Path(signals_h5), dims, echoes)
+
+
+@cli.command(help="Create new simulation directory.", context_settings={'show_default': True})
+@click.argument('sim_dir_path', type=click.Path())
+def new_sim(sim_dir_path):
+    _ = Simulation(Path(sim_dir_path))
+
+
+@cli.command(help="Prepare a full sample in slices", context_settings={'show_default': True})
+@click.argument('seg_path', type=click.Path())
+@click.argument('sim_dir_path', type=click.Path())
+@add_options(_array_options)
+def sample(seg_path, sim_dir_path, xslice, yslice, zslice, interpolation, transpose):
+    write_sample(Path(seg_path), Path(sim_dir_path), slices=mpm_utils.slicing((xslice, yslice, zslice)),
+                 transpose_array=transpose, interpolation_factor=interpolation)
 
 
 if __name__ == '__main__':

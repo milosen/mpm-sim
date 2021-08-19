@@ -1,19 +1,16 @@
-from typing import Union, Tuple
-from pathlib import Path
 import logging
 
 import numpy as np
 import h5py
 
 
-import mpm_sim.utils as mpm_utils
-from mpm_sim.simulation import Simulation
+from mpm_sim.utils import *
 
 
 class BrainModel:
-    """Definition of the lookup table for building multi-parametric
-    maps from segmentations"""
-    tissue = np.array(
+    """Definition of the lookup table for generating multi-parametric maps from tissue maps"""
+
+    mcgill_tissues = np.array(
         # T1, T2, T2*[ms], M0, CS[rad/sec]
         [[0, 0, 0, 0.00, 0],  # Background
          [2569, 329, 158, 1.00, 0],  # 1 = CSF
@@ -26,7 +23,6 @@ class BrainModel:
          [833, 83, 69, 0.86, 0],  # 8 = Glial Matter
          [500, 70, 61, 0.77, 0]]  # 9 = Meat
     )
-    classes = 9
 
 
 def lookup_mpm(data: np.ndarray) -> np.ndarray:
@@ -43,101 +39,92 @@ def lookup_mpm(data: np.ndarray) -> np.ndarray:
     :return: multi-parametric map with shape (<shape of data>, 5)
     """
     data = data.astype(int)
-    return BrainModel.tissue[data].astype(float)
+    return BrainModel.mcgill_tissues[data].astype(float)
 
 
-def mk_h5_sample(data: np.ndarray, db: Union[np.ndarray, None] = None) -> np.ndarray:
+def sample_to_jemris(data: np.ndarray, off_resonance: Union[np.ndarray, None] = None) -> np.ndarray:
     """Convert data to JEMRIS readable format.
 
-    Convert data to hdf5 format in JEMRIS readable configuration and return the object
-    for further processing (adapted from the JEMRIS matlab-gui).
-    :param data: multi-parameter map
-    :param db: off-resonance in rad/sec for each spin isochromat (shape equal to shape of spin isochromat matrix)
-    :return: h5 object
+    Sort data into JEMRIS readable configuration and return the object for further processing
+    (adapted from the JEMRIS matlab-gui).
+    :param data: unsorted multi-parameter map with the first 3 dimensions being space and the forth indexing the maps in
+                 the order T1, T2, T2*[ms], M0
+    :param off_resonance: off-resonance in rad/sec for each spin isochromat (shape = shape of spin isochromat matrix)
+    :return: sorted multi-parameter map
     """
-    data[data <= 0] = 0
-    sample = np.zeros(data.shape)
+
+    data_shape = list(data.shape)[:-1]
+    data_shape.append(5)
+    jemris_sample = np.zeros(data_shape)
+
+    # Convert relaxation times to relaxation rates.
     for i in range(3):
-        sample[:, :, :, i+1] = np.reciprocal(data[:, :, :, i], where=data[:, :, :, i] > 0)
-    sample[:, :, :, 0] = data[:, :, :, 3]
-    if db is None:
-        sample[:, :, :, 4] = np.zeros(data[:, :, :, 3].shape)
-    else:
-        sample[:, :, :, 4] = db
-    sample = sample.transpose((3, 0, 1, 2))
+        jemris_sample[:, :, :, i+1] = np.reciprocal(data[:, :, :, i], where=data[:, :, :, i] != 0)
 
-    return sample
+    # In Jemris, M0 is the first parameter.
+    jemris_sample[:, :, :, 0] = data[:, :, :, 3]
+
+    if off_resonance is not None:
+        jemris_sample[:, :, :, 4] = off_resonance
+
+    jemris_sample = jemris_sample.transpose((3, 0, 1, 2))
+
+    return jemris_sample
 
 
-def write_sample(segmentation_path: Path,
-                 simu_path: Path,
-                 slices: mpm_utils.Slices = mpm_utils.NONE_SLICES,
-                 transpose_array: Tuple[int, int, int] = (0, 1, 2),
-                 interpolation_factor: int = 1,
-                 resolution_mm: Union[tuple, int, float] = None,
-                 offset: Union[tuple, int, float] = (0, 0, 0),
-                 plot: bool = False) -> bool:
-    """Use a brain segmentation in nifti format as a template for a JEMRIS
-    sample and write the sample to disk.
+def prepare_mpm(segmentation_path: str, **kwargs) -> ndarray:
+    """Prepare a multi-parametric map for simulation based on a tissue map (segmentation)."""
 
-    - slice segmentation template
-    - interpolate sliced segmentation template
-    - use resulting volume as a template for generation of a multi-parameter map
+    data, header = load_nifti(segmentation_path)
 
-    :param segmentation_path: path to brain segmentation file
-    :param sample_path: target path for JEMRIS sample
-    :param slices: slice object (will be applied to the template before interpolation and lookup)
-    :param transpose_array: re-define directions (x, y, z) if necessary.
-    :param interpolation_factor: augment each voxel dimension by this factor
-    (with 3D samples, this will result in n-cubed spin isochromats)
-    :param resolution_mm: size of each spin compartment in mm (voxel size after interpolation).
-                          Default: None (try to calc from header data)
-    :param offset: Offset for sample position in space. Default: no offset will be applied.
-    :param plot: plot slice of the created sample.
-    :return: True on success
-    """
-    data, header = mpm_utils.load_nifti(segmentation_path)
-    simu = Simulation(simu_path)
+    args = check_array_defaults(kwargs)
 
-    # check resolution and offset parameters
-    # if no resolution is provided, calculate from header info and interpolation factor
-    if resolution_mm is None:
-        resolution_mm = tuple(header['pixdim'][1:4] / interpolation_factor)
-    elif isinstance(resolution_mm, (float, int)):
-        resolution_mm = (resolution_mm for _ in range(3))
+    # If no resolution is provided, try to calculate from header info and interpolation factor.
+    # Fallback is default resolution.
+    if isinstance(args['resolution'], (float, int)):
+        args['resolution'] = (args['resolution'] for _ in range(3))
+    elif 'pixdim' in header:
+        args['resolution'] = tuple(header['pixdim'][1:4] / args['interpolation'])
 
-    if isinstance(offset, (float, int)):
-        offset = (offset for _ in range(3))
-    
-    logging.info("Apply transformations to segmentation data...")
-    transformed_data = mpm_utils.preprocess_array(data, slices, transpose_array, interpolation_factor)
+    # check offset type
+    if isinstance(args['offset'], (float, int)):
+        args['offset'] = (args['offset'] for _ in range(3))
 
-    logging.info("Calculate MPMs...")
-    mpm_data = lookup_mpm(transformed_data)
+    logging.info("Resample segmentation data...")
+    slices = tuple(slice(start_stop[0], start_stop[1]) for start_stop in [args['xslice'], args['yslice'], args['zslice']])
+    transformed_segmentation = resample_simulation_volume(data, slices, args['transpose'], args['interpolation'])
 
-    logging.info("Translate into HDF5 format...")
-    h5_sample = mk_h5_sample(mpm_data)
+    logging.info("Calculate multi-parametric maps...")
+    return lookup_mpm(transformed_segmentation)
 
-    logging.info("Write HDF5 sample to disc...")
-    sample_file = simu.paths['SAMPLE_FILE']
+
+def write_sample(mpm_data: ndarray, sample_file: Path, **kwargs) -> bool:
+    """Write mpm data numpy array to disc as HDF5 file."""
+
+    jemris_readable_sample = sample_to_jemris(mpm_data)
+
+    args = check_array_defaults(kwargs)
+
     if sample_file.exists():
         sample_file.unlink()
 
     with h5py.File(sample_file, 'w') as hf:
         s = hf.create_group('sample')
-        s.create_dataset('data', data=h5_sample.transpose())
-        s.create_dataset('resolution', data=resolution_mm)
-        s.create_dataset('offset', data=offset)
+        s.create_dataset('data', data=jemris_readable_sample.transpose())
+        s.create_dataset('resolution', data=args['resolution'])
+        s.create_dataset('offset', data=args['offset'])
+        # TODO: Multi-pool exchange model. Should work by doing something like in the lines below.
+        #  I could not test it, because we do not have multi-pool data
         # if pools is not None:
-        #     hf.create_dataset('exchange', data=np.transpose(n_pool_exchange_matrix(pools)))
+        #     s.create_dataset('exchange', data=np.transpose(n_pool_exchange_matrix(pools)))
 
     if sample_file.exists():
         logging.info('Sample written:')
-        logging.info(f'Segmentation file: {segmentation_path}')
-        logging.info(f'HDF5 sample shape (Params, X, Y, Z): {h5_sample.shape}')
+        logging.info(f'HDF5 sample shape (Params, X, Y, Z): {jemris_readable_sample.shape}')
         logging.info(f'Dest: {sample_file}')
-        if plot:
-            mpm_utils.plot_matrix(h5_sample[0, 0], 'JEMRIS sample')
+        args = check_defaults(args, {'plot': False})
+        if args['plot']:
+            plot_matrix(jemris_readable_sample[0, 0], 'JEMRIS sample')
         return True
     else:
         logging.error(f"Could not write sample to {sample_file}.")

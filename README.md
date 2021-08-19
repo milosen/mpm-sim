@@ -29,37 +29,24 @@ For example, run `mpm-sim sample --help` for the sample utility.
 A complete list of all commands will be displayed when you try to execute `mpm-sim` without further specifications or run `mpm-sim --help`.
 
 To run simulations, you will need the Jemris simulator. 
-Please refer to the sections below on how to build Jemris.
+Please refer to later sections on how to build Jemris.
 
-### Creating a sample
-You need to provide jemris with a ground-truth mpm for it to have all the physiological parameters available. The command `mpm-sim sample` helps with creating one from a label map.
-```shell
-$ mpm-sim sample --help
-Usage: mpm-sim sample [OPTIONS] SEG_PATH
+### Initializing a simulation
+You need to provide a ground-truth multi-parametric map for simulation. 
+The command `mpm-sim init` helps with creating one from a tissue map (segmentation) and configures a single simulation run.
 
-  Prepare a sample for simulation
-
-Options:
-  --sample_name SAMPLE_NAME
-  -o, --out_dir PATH              output directory
-  -i, --interpolation INTERP_FACTOR
-                                  multiply number of spin by this factor on
-                                  each axis using nearest neighbor
-                                  interpolation
-
-  -x, --xslice X_SLICE            slicing in x direction
-  -y, --yslice Y_SLICE            slicing in y direction
-  -z, --zslice Z_SLICE            slicing in z direction
-  --help                          Show this message and exit.
-```
-It takes in a tissue label map and returns a jemris readable `hdf5` file containing an mpm with looked up parameters. You can find an example of a label map at `test/data/segmentation.nii`. Currently, the tool only reads nifty files.
-
-You can also specify a python-type slicing of the 3d volume and an interpolation factor for nearest neighbor interpolation of the voxels. The interpolation is necessary to increase the number of spins per voxel, but choose the factor wisely. The factor is dimension-wise, so a factor of `-i 5` means that you will have 5^3 = 125 spins per voxel. Both, slicing and interpolation, will be applied before the mpm lookup.
+You can specify a python-type slicing of the 3d volume and an interpolation factor for nearest neighbor interpolation of the voxels. 
+The interpolation is necessary to increase the number of spins per voxel, but choose the factor wisely. The factor is dimension-wise, so a factor of `-i 5` means that you will have 5^3 = 125 spins per voxel. 
+Both, slicing and interpolation, will be applied before the mpm lookup.
 
 The final command might look something like this:
 ```shell
 mpm-sim sample test/data/segmentation.nii -x 200 201 -i 2
 ```
+
+Unfortunately, the script does not generate jemris sequences and RX/TX coil configurations for you.
+You can copy them from one of the examples in the `examples/` directory.
+
 ### Creating a sensitivity map
 This is a work in progress.
 

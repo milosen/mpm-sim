@@ -1,5 +1,0 @@
-<?xml version="1.0" encoding="utf-8"?>
-<CoilArray>
-	<EXTERNALCOIL Dim="2" Extent="62.0" Filename="1sensmaps.h5" Name="C1" Points="124"/>
-	<EXTERNALCOIL Dim="2" Extent="62.0" Filename="2sensmaps.h5" Name="C2" Points="124"/>
-</CoilArray>

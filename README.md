@@ -16,9 +16,10 @@ conda env create --file environment.yml
 ```
 Now activate the environment
 ```shell
-conda activate jemris
+conda activate mpm-sim
 ```
-and install this repository
+(On the MPCDF computers, replace `conda` with `source`.)
+Finally, install this repository by running
 ```shell
 pip install -e .
 ```

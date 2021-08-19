@@ -41,11 +41,12 @@ Both, slicing and interpolation, will be applied before the mpm lookup.
 
 The final command might look something like this:
 ```shell
-mpm-sim sample test/data/segmentation.nii -x 200 201 -i 2
+mpm-sim init data/segmentation.nii -x 200 201 -i 2
 ```
 
 Unfortunately, the script does not generate jemris sequences and RX/TX coil configurations for you.
 You can copy them from one of the examples in the `examples/` directory.
+For MPM simulations, I suggest starting with a 
 
 ### Creating a sensitivity map
 This is a work in progress.

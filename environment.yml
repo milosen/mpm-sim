@@ -1,4 +1,4 @@
-name: jemris
+name: mpm-sim
 channels:
   - conda-forge
   - defaults

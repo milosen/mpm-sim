@@ -27,6 +27,7 @@ pip install -e .
 ## Build Jemris
 Chances are you have to build Jemris from source. You can do so by using cmake, but you need to have the dependencies installed. 
 At the MPI CBS, Jemris is known to work on `maki` and `manati`, and the dependencies are already installed there. 
+It also runs on teh MPCDF `cobra` machines, but you'll have to install the dependencies manually (sections below).
 To build jemris, execute the following lines individually in your terminal at the machine you want to use:
 ```shell
 # clone git repository
@@ -40,8 +41,9 @@ make
 ```
 You'll find the executables at `jemris/build/src/jemris` and `jemris/build/src/pjemris`.
 
-### Install Dependencies on Linux (e.g. Ubuntu at the institute)
-If you can install libraries via a package manager, than you need to install the following packages (these exact names are for Ubuntu):
+### Install Dependencies on Ubuntu (e.g. at an institute server)
+If you can install libraries via a package manager, than you need to install the following packages 
+(these exact names are for Ubuntu):
 ```shell
 apt-get install \
 libhdf5-dev \
@@ -53,7 +55,7 @@ libginac-dev
 ```
 
 ### Install Dependencies on MPCDF cobra
-For the MPCDF in Garching, you can execute the script in `scripts/mpcdf_build_jemris.sh`, e.g. in an interactive run. 
+For the MPCDF in Garching, you can execute the script in `scripts/mpcdf_build_jemris.sh`, e.g. in an interactive run: 
 ```shell
 srun -p interactive -n 1 ./scripts/mpcdf_build_jemris.sh
 ```

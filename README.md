@@ -23,34 +23,6 @@ and install this repository
 pip install -e .
 ```
 
-## Usage
-The main interface is called `mpm-sim` and it has sub-commands with their own help messages.
-For example, run `mpm-sim sample --help` for the sample utility.
-A complete list of all commands will be displayed when you try to execute `mpm-sim` without further specifications or run `mpm-sim --help`.
-
-To run simulations, you will need the Jemris simulator. 
-Please refer to later sections on how to build Jemris.
-
-### Initializing a simulation
-You need to provide a ground-truth multi-parametric map for simulation. 
-The command `mpm-sim init` helps with creating one from a tissue map (segmentation) and configures a single simulation run.
-
-You can specify a python-type slicing of the 3d volume and an interpolation factor for nearest neighbor interpolation of the voxels. 
-The interpolation is necessary to increase the number of spins per voxel, but choose the factor wisely. The factor is dimension-wise, so a factor of `-i 5` means that you will have 5^3 = 125 spins per voxel. 
-Both, slicing and interpolation, will be applied before the mpm lookup.
-
-The final command might look something like this:
-```shell
-mpm-sim init data/segmentation.nii -x 200 201 -i 2
-```
-
-Unfortunately, the script does not generate jemris sequences and RX/TX coil configurations for you.
-You can copy them from one of the examples in the `examples/` directory.
-For MPM simulations, I suggest starting with a 
-
-### Creating a sensitivity map
-This is a work in progress.
-
 ## Build Jemris
 Chances are you have to build Jemris from source. You can do so by using cmake, but you need to have the dependencies installed. 
 At the MPI CBS, Jemris is known to work on `maki` and `manati`, and the dependencies are already installed there. 
@@ -87,6 +59,36 @@ srun -p interactive -n 1 ./scripts/mpcdf_build_jemris.sh
 (To login on an interactive node you can type `ssh cobra-i`).
 The script will build Jemris and it's dependencies from source. 
 You can find the executables in `jemris/build/src/` or `jemris/bin/`.
+
+## Get Ground Truth Data
+Copy the directory `jemris/data` from my Datashare into `<root/of/this/project>/data`. 
+If you don't have permissions, ask Kornelius or Patrick.
+
+## Usage
+The main interface is called `mpm-sim` and it has sub-commands with their own help messages.
+For example, run `mpm-sim init --help` for the help page of the simulation initializer script.
+A complete list of all commands will be displayed when you try to execute `mpm-sim` without further specifications or run `mpm-sim --help`.
+
+### Initializing a simulation
+You need to provide a ground-truth multi-parametric map for simulation. 
+The command `mpm-sim init` helps with creating one from a tissue map (segmentation) and sets up the directory structure 
+and configuration files for a single simulation run.
+
+You can specify a python-type slicing of the 3d volume and an interpolation factor for nearest neighbor interpolation of the voxels. 
+The interpolation is necessary to increase the number of spins per voxel, but choose the factor wisely. The factor is dimension-wise, so a factor of `-i 5` means that you will have 5^3 = 125 spins per voxel. 
+Both, slicing and interpolation, will be applied before the mpm lookup.
+
+The final command might look something like this:
+```shell
+mpm-sim init data/segmentation.nii -x 200 201 -i 2
+```
+
+Unfortunately, the script does not generate jemris sequences and RX/TX coil configurations for you.
+You can copy them from one of the examples in the `examples/` directory.
+For MPM simulations, I suggest starting with a 
+
+### Creating a sensitivity map
+This is a work in progress.
 
 ## References
 [1] Stöcker, T., Vahedipour, K., Pflugfelder, D. and Shah, N.J. (2010), High-performance computing MRI simulations. Magn. Reson. Med., 64: 186-193. https://doi.org/10.1002/mrm.22406

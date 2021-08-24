@@ -1,0 +1,111 @@
+From b2868e787290d97c20736968691c089c4fef3bc8 Mon Sep 17 00:00:00 2001
+From: Nikola Milosevic <nikolam495@gmail.com>
+Date: Thu, 6 May 2021 10:13:21 +0200
+Subject: [PATCH 2/2] null transverse relaxation
+
+---
+ src/Model.cpp        | 16 ++++++++++------
+ src/SpoilerPulse.cpp |  6 +-----
+ src/SpoilerPulse.h   | 10 ++--------
+ 3 files changed, 13 insertions(+), 19 deletions(-)
+
+diff --git a/src/Model.cpp b/src/Model.cpp
+index dd20623..6728124 100755
+--- a/src/Model.cpp
++++ b/src/Model.cpp
+@@ -154,7 +154,7 @@ void Model::RunSequenceTree (double& dTimeShift, long& lIndexShift, Module* modu
+ 		vector<Module*> children      = module->GetChildren();
+ 		bool            bCollectTPOIs = false;
+ 
+-		//dynamic changes of ADCs
++        bool null_transverse = false;
+ 		for (unsigned int j=0; j<children.size() ; ++j) {
+ 
+ 			Pulse* p = (Pulse*) children[j];
+@@ -172,7 +172,7 @@ void Model::RunSequenceTree (double& dTimeShift, long& lIndexShift, Module* modu
+ 
+             // Test SpoilerPulse
+             if (SpoilerPulse* dc = dynamic_cast<SpoilerPulse*>(p))
+-                std::cout << "We called SpoilerPulse! :) " << typeid(dc).name() << std::endl;
++                null_transverse = true;
+         }
+ 
+ 
+@@ -218,7 +218,7 @@ void Model::RunSequenceTree (double& dTimeShift, long& lIndexShift, Module* modu
+ 			}
+ 
+ 			//if numerical error occurs in calculation, repeat the current atom with increased accuracy
+-			if (!Calculate(next_tStop)) {
++            if (!Calculate(next_tStop)) {
+ 				//remove wrong contribution to the signal(s)
+ 				iadc=0;
+ 				for (int j=0; j < i; ++j) {
+@@ -247,10 +247,14 @@ void Model::RunSequenceTree (double& dTimeShift, long& lIndexShift, Module* modu
+ 				lIndexShift = ladc;
+ 				m_accuracy_factor *= 10.0; // back to default accuracy
+ 				return;
+-			}
++            }
++
++            // null transverse relaxation in case of perfect spoiling
++            if(null_transverse)
++                m_world->solution[0] = 0.0;
+ 
+-			if (m_world->phase < 0.0)
+-				continue;	//negative receiver phase == no ADC !
++            if (m_world->phase < 0.0)
++                continue;	//negative receiver phase == no ADC !
+ 
+ 			m_world->time  += dTimeShift;
+ 			m_rx_coil_array->Receive(lIndexShift++);
+diff --git a/src/SpoilerPulse.cpp b/src/SpoilerPulse.cpp
+index 5ff1bfe..72567ff 100644
+--- a/src/SpoilerPulse.cpp
++++ b/src/SpoilerPulse.cpp
+@@ -4,13 +4,9 @@ double SpoilerPulse::GetGradient (double const time)  {
+     return 0.0;
+ }
+ 
+-bool SpoilerPulse::Prepare(PrepareMode mode)   {
+-    return true;
+-}
+-
+ string SpoilerPulse::GetInfo() {
+     // Debug output
+     stringstream s;
+-    s << GradPulse::GetInfo();
++    s << TrapGradPulse::GetInfo();
+     return s.str();
+ }
+diff --git a/src/SpoilerPulse.h b/src/SpoilerPulse.h
+index 3f7f4ee..2839ec9 100644
+--- a/src/SpoilerPulse.h
++++ b/src/SpoilerPulse.h
+@@ -1,9 +1,9 @@
+ #ifndef SPOILERPULSE_H
+ #define SPOILERPULSE_H
+ 
+-#include "GradPulse.h"
++#include "TrapGradPulse.h"
+ 
+-class SpoilerPulse : public GradPulse {
++class SpoilerPulse : public TrapGradPulse {
+  public:
+     // Default constructor
+     SpoilerPulse() {};
+@@ -13,12 +13,6 @@ class SpoilerPulse : public GradPulse {
+     ~SpoilerPulse () {};
+     // Cloning mechanism as descibed by Gamma et al "Design patterns"
+     inline SpoilerPulse* Clone() const { return (new SpoilerPulse(*this)); };
+-    // Prepare the pulse with nessecary parameters.
+-    //
+-    // param mode. Sets the preparation mode, one of enum PrepareMode
+-    //             {PREP_INIT,PREP_VERBOSE,PREP_UPDATE}.
+-    // returns     Success of the preparation.
+-    virtual bool Prepare  (PrepareMode mode);
+     // Returns a constant Magnitude for all times.
+     //
+     // param time. The magnitude is requested for "time". Offset is the start time of the pulse.
+-- 
+2.23.0
+

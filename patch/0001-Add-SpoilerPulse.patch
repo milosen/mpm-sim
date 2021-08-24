@@ -1,0 +1,145 @@
+From 89f76ba63822b51498fefed13f0d4197568e9304 Mon Sep 17 00:00:00 2001
+From: Nikola Milosevic <nikolam495@gmail.com>
+Date: Mon, 26 Apr 2021 20:25:06 +0200
+Subject: [PATCH 1/2] Add SpoilerPulse
+
+---
+ src/CMakeLists.txt             |  2 +-
+ src/Model.cpp                  |  8 +++++++-
+ src/ModulePrototypeFactory.cpp |  3 ++-
+ src/SpoilerPulse.cpp           | 16 ++++++++++++++++
+ src/SpoilerPulse.h             | 32 ++++++++++++++++++++++++++++++++
+ 5 files changed, 58 insertions(+), 3 deletions(-)
+ create mode 100644 src/SpoilerPulse.cpp
+ create mode 100644 src/SpoilerPulse.h
+
+diff --git a/src/CMakeLists.txt b/src/CMakeLists.txt
+index 776e3c9..bda848b 100755
+--- a/src/CMakeLists.txt
++++ b/src/CMakeLists.txt
+@@ -31,7 +31,7 @@ list (APPEND CORE_SRC AnalyticCoil.cpp AnalyticCoil.h
+   Sequence.cpp Sequence.h SequenceTree.cpp SequenceTree.h Signal.cpp
+   Signal.h SimpleIO.h SimpleIO.cpp Simulator.cpp Simulator.h
+   SincRFPulse.cpp SincRFPulse.h SpiralGradPulse.cpp SpiralGradPulse.h
+-  StrX.cpp StrX.h TPOI.cpp TPOI.h Trajectory.cpp Trajectory.h
++  SpoilerPulse.cpp SpoilerPulse.h StrX.cpp StrX.h TPOI.cpp TPOI.h Trajectory.cpp Trajectory.h
+   Trajectory1D.cpp Trajectory1D.h TrajectoryDiffusion.cpp
+   TrajectoryDiffusion.h TrajectoryEmpty.h TrajectoryInterface.cpp
+   TrajectoryInterface.h TrajectoryMotion.cpp TrajectoryMotion.h
+diff --git a/src/Model.cpp b/src/Model.cpp
+index 8d9179c..dd20623 100755
+--- a/src/Model.cpp
++++ b/src/Model.cpp
+@@ -23,6 +23,7 @@
+  *  along with this program; if not, write to the Free Software
+  *  Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
+  */
++#include <typeinfo>
+ 
+ #include "Model.h"
+ #include "Sample.h"
+@@ -37,6 +38,7 @@
+ 
+ #include "time.h"
+ #include "Trajectory.h"
++#include "SpoilerPulse.h"
+ 
+ /**************************************************/
+ Model::Model() : m_tx_coil_array(0), m_sample(0), m_rx_coil_array(0), m_concat_sequence(0) {
+@@ -167,7 +169,11 @@ void Model::RunSequenceTree (double& dTimeShift, long& lIndexShift, Module* modu
+ 			if (m_world->SpinNumber == 0)
+ 				if (p->GetAxis() == AXIS_RF)
+ 					((RFPulse*) p)->SetCoilArray (m_tx_coil_array);
+-		}
++
++            // Test SpoilerPulse
++            if (SpoilerPulse* dc = dynamic_cast<SpoilerPulse*>(p))
++                std::cout << "We called SpoilerPulse! :) " << typeid(dc).name() << std::endl;
++        }
+ 
+ 
+ 		//temporary storage
+diff --git a/src/ModulePrototypeFactory.cpp b/src/ModulePrototypeFactory.cpp
+index fe959ba..303fa83 100644
+--- a/src/ModulePrototypeFactory.cpp
++++ b/src/ModulePrototypeFactory.cpp
+@@ -45,6 +45,7 @@
+ #include "Container.h"
+ #include "AtomicSequence.h"
+ #include "DelayAtomicSequence.h"
++#include "SpoilerPulse.h"
+ 
+ #include "StrX.h"
+ 
+@@ -78,7 +79,7 @@ ModulePrototypeFactory::ModulePrototypeFactory () {
+ 	m_Clonables.insert( pair<string,Module*>( "CONTAINER",           new Container           () ));
+ 	m_Clonables.insert( pair<string,Module*>( "ATOMICSEQUENCE",      new AtomicSequence      () ));
+ 	m_Clonables.insert( pair<string,Module*>( "DELAYATOMICSEQUENCE", new DelayAtomicSequence () ));
+-
++    m_Clonables.insert( pair<string,Module*>( "SPOILERPULSE",        new SpoilerPulse        () ));
+ }
+ 
+ /***********************************************************/
+diff --git a/src/SpoilerPulse.cpp b/src/SpoilerPulse.cpp
+new file mode 100644
+index 0000000..5ff1bfe
+--- /dev/null
++++ b/src/SpoilerPulse.cpp
+@@ -0,0 +1,16 @@
++#include "SpoilerPulse.h"
++
++double SpoilerPulse::GetGradient (double const time)  {
++    return 0.0;
++}
++
++bool SpoilerPulse::Prepare(PrepareMode mode)   {
++    return true;
++}
++
++string SpoilerPulse::GetInfo() {
++    // Debug output
++    stringstream s;
++    s << GradPulse::GetInfo();
++    return s.str();
++}
+diff --git a/src/SpoilerPulse.h b/src/SpoilerPulse.h
+new file mode 100644
+index 0000000..3f7f4ee
+--- /dev/null
++++ b/src/SpoilerPulse.h
+@@ -0,0 +1,32 @@
++#ifndef SPOILERPULSE_H
++#define SPOILERPULSE_H
++
++#include "GradPulse.h"
++
++class SpoilerPulse : public GradPulse {
++ public:
++    // Default constructor
++    SpoilerPulse() {};
++    // Default copy constructor.
++    SpoilerPulse  (const SpoilerPulse&) {};
++    // Default destructor.
++    ~SpoilerPulse () {};
++    // Cloning mechanism as descibed by Gamma et al "Design patterns"
++    inline SpoilerPulse* Clone() const { return (new SpoilerPulse(*this)); };
++    // Prepare the pulse with nessecary parameters.
++    //
++    // param mode. Sets the preparation mode, one of enum PrepareMode
++    //             {PREP_INIT,PREP_VERBOSE,PREP_UPDATE}.
++    // returns     Success of the preparation.
++    virtual bool Prepare  (PrepareMode mode);
++    // Returns a constant Magnitude for all times.
++    //
++    // param time. The magnitude is requested for "time". Offset is the start time of the pulse.
++    // returns     Magnitude at time "time".
++    inline virtual double GetGradient (double const time );
++ private:
++    // Get information for output.
++    virtual string GetInfo ();
++};
++
++#endif // SPOILERPULSE_H
+-- 
+2.23.0
+

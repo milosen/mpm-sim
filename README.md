@@ -93,7 +93,7 @@ Both, slicing and interpolation, will be applied before the mpm lookup.
 
 The final command might look something like this:
 ```shell
-mpm-sim init example_1 -x 200 201 -i 2 data/segmentation.nii
+mpm-sim init -x 200 201 -i 2 data/segmentation.nii example_1
 ```
 
 Unfortunately, the script does not generate jemris sequences and RX/TX coil configurations for you.
@@ -119,7 +119,7 @@ Also, take a look at `examples/mpcdf_tutorial_02_rx_field.sh`.
 ### Complete Examples
 Please find complete simulation experiments in the form of shell scripts in the `examples/` folder. For example run
 ```shell script
-bash examples/mpcdf_tutorial_flash_pdw.sh
+bash examples/mpcdf_tutorial_01_flash_pdw.sh
 ```
 for a complete simulation setup on the MPCDF cobra cluster.
 

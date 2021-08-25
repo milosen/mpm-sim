@@ -110,3 +110,8 @@ def check_defaults(kwargs: dict, defaults: dict) -> dict:
 def check_array_defaults(kwargs: dict) -> dict:
     """run check_defaults with the defaults for 3d array data"""
     return check_defaults(kwargs, ARRAY_DEFAULTS)
+
+
+def get_slicing(args: dict):
+    """return a sliceable object from x-/y-/z-slice arguments"""
+    return tuple(slice(start_stop[0], start_stop[1]) for start_stop in [args['xslice'], args['yslice'], args['zslice']])

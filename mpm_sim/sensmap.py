@@ -25,7 +25,7 @@ def register_coil(coil_xml_path: Path, extent: float, points: int, dim: int = 3,
 
     external_coil = et.SubElement(coil_array, 'EXTERNALCOIL')
     map_name = f"{coil_xml_path.stem}_coil_{len(coil_array.getchildren()) - 1}"
-    map_path = Path(map_name).with_suffix('.h5')
+    map_path = full_dir(coil_xml_path) / Path(map_name).with_suffix('.h5')
     external_coil.set('Name', map_name)
     external_coil.set('Dim', str(dim))
     external_coil.set('Points', str(points))
@@ -51,7 +51,7 @@ def sensmap(coil_xml_path: Path, magmap: str, phasemap: str, **kwargs):
     kwargs = check_array_defaults(kwargs)
 
     logging.info(f'Preprocess map data...')
-    slices = (kwargs['xslices'], kwargs['yslices'], kwargs['zslices'])
+    slices = get_slicing(kwargs)
     data_magmap = resample_simulation_volume(load_nifti(magmap)[0], slices, kwargs['transpose'], BIAS_INTERPOLATION)
     data_phasemap = resample_simulation_volume(load_nifti(phasemap)[0], slices, kwargs['transpose'], BIAS_INTERPOLATION)
 

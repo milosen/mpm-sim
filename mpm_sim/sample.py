@@ -91,7 +91,7 @@ def prepare_mpm(segmentation_path: str, **kwargs) -> ndarray:
         args['offset'] = (args['offset'] for _ in range(3))
 
     logging.info("Resample segmentation data...")
-    slices = tuple(slice(start_stop[0], start_stop[1]) for start_stop in [args['xslice'], args['yslice'], args['zslice']])
+    slices = get_slicing(args)
     transformed_segmentation = resample_simulation_volume(data, slices, args['transpose'], args['interpolation'])
 
     logging.info("Calculate multi-parametric maps...")

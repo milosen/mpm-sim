@@ -24,7 +24,8 @@ mpm-sim init runs/example_1 data/segmentation.nii -i 2 -x 200 201
 # controlled zeroing of the transverse magnetization for emulating perfect spoiling.
 cp examples/pdw_null/* runs/example_1
 
-# Jemris assumes that the current working directory is also the working directory of the simulation. So, we cd into the
-# prepared simulation directory and invoke the batch script from here.
+# Jemris assumes that the current working directory is also the working directory of the simulation.
+# So, we cd into the prepared simulation directory and invoke the batch script from here. Also, it's easier to output
+# the logfile of the batch system here to have everything regarding a single simulation in a single enclosed directory.
 cd runs/example_1 || exit
 sbatch ../../scripts/pjemris.sbatch

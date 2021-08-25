@@ -26,7 +26,7 @@ class SimulationDirectory:
     )
 
     def __init__(self, sim_dir_path: Union[str, Path]):
-        sim_dir_path = Path(sim_dir_path)
+        sim_dir_path = Path(sim_dir_path).absolute()
 
         self.paths = dict(ROOT_DIR=sim_dir_path)
 
@@ -57,10 +57,10 @@ class SimulationDirectory:
         sample = xml_etree.SubElement(self.simulate, 'sample')
 
         rx_coilarray = xml_etree.SubElement(self.simulate, 'RXcoilarray')
-        rx_coilarray.set('uri', SimulationDirectory.files['RX_FILE'])
+        rx_coilarray.set('uri', str(self.paths['RX_FILE'].absolute()))
 
         tx_coilarray = xml_etree.SubElement(self.simulate, 'TXcoilarray')
-        tx_coilarray.set('uri', SimulationDirectory.files['TX_FILE'])
+        tx_coilarray.set('uri', str(self.paths['TX_FILE'].absolute()))
 
         parameter = xml_etree.SubElement(self.simulate, 'parameter')
         parameter.set('ConcomitantFields', '0')
@@ -70,7 +70,7 @@ class SimulationDirectory:
 
         sequence = xml_etree.SubElement(self.simulate, 'sequence')
         sequence.set('name', 'sequence')
-        sequence.set('uri', SimulationDirectory.files['SEQUENCE_FILE'])
+        sequence.set('uri', str(self.paths['SEQUENCE_FILE'].absolute()))
 
         # We use the standard Bloch solver because the Bloch-McConnell solver requires complete multi-pool data which we
         # do not have. The solver engine is the CVODE solver from the Sundials library.
@@ -79,7 +79,7 @@ class SimulationDirectory:
         model.set('type', 'CVODE')
 
         sample.set('Name', 'Sample')
-        sample.set('uri', SimulationDirectory.files['SAMPLE_FILE'])
+        sample.set('uri', str(self.paths['SAMPLE_FILE'].absolute()))
 
     def dump_simu_xml(self):
         xml_string = xml_etree.tostring(self.simulate, pretty_print=True, encoding='utf-8', xml_declaration=True)

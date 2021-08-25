@@ -93,7 +93,7 @@ Both, slicing and interpolation, will be applied before the mpm lookup.
 
 The final command might look something like this:
 ```shell
-mpm-sim init data/segmentation.nii -x 200 201 -i 2
+mpm-sim init example_1 -x 200 201 -i 2 data/segmentation.nii
 ```
 
 Unfortunately, the script does not generate jemris sequences and RX/TX coil configurations for you.
@@ -101,15 +101,27 @@ You can copy them from one of the examples in the `examples/` directory.
 For MPM simulations, I suggest starting with a sequence that uses controlled zeroing of the transverse magnetization 
 to emulate perfect spoiling, e.g. `examples/pdw_null/jemris_sequence.xml`.
 
+### Postprocessing
+The simulation output is the time course of the magnetization 3-vector as recorded by the receive coils.
+To obtain kspace data, you have to order the time samples. `mpm-sim kspace` is a generic utility which can help with 
+that ordering.
+For example, the simulation above (the example segmentation is 434x352x496) corresponds to
+```shell script
+mpm-sim kspace --dims 1 352 496 --echoes 6 example_1/signals.h5
+```
+
+### Creating a sensitivity map
+For example:
+```shell script
+mpm-sim prepare-rx-field --overwrite -x 200 201 data/sensmaps/Coils_ch1_Magnitude.nii data/sensmaps/Coils_ch1_Phase.nii runs/example_1
+```
+Also, take a look at `examples/mpcdf_tutorial_02_rx_field.sh`.
 ### Complete Examples
-Please find complete simulation experiments as shell scripts in the `examples/` folder, e.g. run
+Please find complete simulation experiments in the form of shell scripts in the `examples/` folder. For example run
 ```shell script
 bash examples/mpcdf_tutorial_flash_pdw.sh
 ```
-to try a complete example on the MPCDF cobra cluster.
-
-### Creating a sensitivity map
-This is a work in progress.
+for a complete simulation setup on the MPCDF cobra cluster.
 
 ## References
 [1] Stöcker, T., Vahedipour, K., Pflugfelder, D. and Shah, N.J. (2010), High-performance computing MRI simulations. Magn. Reson. Med., 64: 186-193. https://doi.org/10.1002/mrm.22406

@@ -48,7 +48,6 @@ def kspace(**kwargs):
 @click.argument('magnitude_map_path', type=click.Path())
 @click.argument('phase_map_path', type=click.Path())
 @click.argument('sim_dir_path', type=click.Path())
-@click.option('--coil_name', type=bool, help='Name of the coil.', default='coil')
 @click.option('--overwrite/--no-overwrite', type=bool, help='Overwrite old coil xml file if it exists.', default=False)
 @add_options(SAMPLE_OPTIONS)
 def prepare_rx_field(**kwargs):

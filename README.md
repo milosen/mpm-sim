@@ -29,9 +29,18 @@ Chances are you have to build Jemris from source. You can do so by using cmake, 
 At the MPI CBS, Jemris is known to work on `maki` and `manati`, and the dependencies are already installed there. 
 It also runs on teh MPCDF `cobra` machines, but you'll have to install the dependencies manually (sections below).
 To build jemris, execute the following lines individually in your terminal at the machine you want to use:
+
+1. Get the source code. You can get the official source code from the Jemris site; 
+but for simulating the FLASH sequence, it makes sense to apply the patches in `patch/` sequentially 
+using `git apply` or to use our fork (as shown below).
+    ```shell
+    # clone git repository
+    git clone git@github.com:milosen/jemris.git
+    # check out branch
+    git checkout null-transverse
+    ```
+2. Build Jemris using `cmake`:
 ```shell
-# clone git repository
-git clone git@github.com:JEMRIS/jemris.git
 # create build directory (e.g. in ./jemris_build)
 mkdir jemris/build && cd jemris/build
 # prepare build configuration files with cmake
@@ -40,6 +49,7 @@ cmake ..
 make
 ```
 You'll find the executables at `jemris/build/src/jemris` and `jemris/build/src/pjemris`.
+If some of the steps above does not work, it's possible that some of the dependencies are missing.
 
 ### Install Dependencies on Ubuntu (e.g. at an institute server)
 If you can install libraries via a package manager, than you need to install the following packages 
@@ -64,7 +74,7 @@ The script will build Jemris and it's dependencies from source.
 You can find the executables in `jemris/build/src/` or `jemris/bin/`.
 
 ## Get Ground Truth Data
-Copy the directory `jemris/data` from my Datashare into `<root/of/this/project>/data`. 
+Download `jemris/data.zip` from my Datashare and extract to `<root/of/this/project>/data`. 
 If you don't have permissions, ask Kornelius or Patrick.
 
 ## Usage
@@ -88,7 +98,15 @@ mpm-sim init data/segmentation.nii -x 200 201 -i 2
 
 Unfortunately, the script does not generate jemris sequences and RX/TX coil configurations for you.
 You can copy them from one of the examples in the `examples/` directory.
-For MPM simulations, I suggest starting with a 
+For MPM simulations, I suggest starting with a sequence that uses controlled zeroing of the transverse magnetization 
+to emulate perfect spoiling, e.g. `examples/pdw_null/jemris_sequence.xml`.
+
+### Complete Examples
+Please find complete simulation experiments as shell scripts in the `examples/` folder, e.g. run
+```shell script
+bash examples/mpcdf_tutorial_flash_pdw.sh
+```
+to try a complete example on the MPCDF cobra cluster.
 
 ### Creating a sensitivity map
 This is a work in progress.

@@ -18,4 +18,4 @@
 #SBATCH --time=24:00:00
 
 # Run the program:
-srun ../../jemris/git_jemris/build/src/pjemris simu.xml &> pjemris.out
+srun ../../jemris/git_jemris/build/src/pjemris jemris_simulation.xml &> pjemris.out
